@@ -1,21 +1,23 @@
 {
   "name": "battleship",
   "version": "1.0.0",
-  "description": "Template for the WebSocket remote control task",
-  "main": "index.js",
-  "type": "module",
+  "description": "Websocket battleship server",
+  "main": "src/index.ts",
+  "type": "commonjs",
   "scripts": {
     "start": "ts-node ./index.ts",
-    "start:dev": "ts-node-dev ./index.ts",
+    "start:dev": "ts-node-dev --respawn ./index.ts",
+    "start:prod": "webpack && node build/main-bundle.js",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sergejs Kuzema",
-  "keywords": [],
+  "keywords": ["node", "battleship"],
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.3.3",
     "@types/webpack": "^5.28.1",
+    "@types/ws": "^8.5.5",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",
@@ -29,6 +31,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "dotenv": "^16.3.1",
     "ws": "^8.13.0"
   }
 }

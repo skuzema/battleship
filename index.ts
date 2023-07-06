@@ -1,6 +1,17 @@
+import dotenv from 'dotenv';
 import { httpServer } from './src/http_server/index';
+import { wsServer } from './src/ws_server/index';
 
-const HTTP_PORT = 8181;
+dotenv.config();
+const HTTP_PORT = process.env.HTTP_PORT || 8181;
+const WS_PORT = process.env.WS_PORT || '3000';
 
 console.log(`Start static http server on the ${HTTP_PORT} port!`);
-httpServer.listen(HTTP_PORT);
+const httpServerConst = httpServer.listen(HTTP_PORT);
+const wsServerConst = wsServer(Number.parseInt(WS_PORT));
+
+process.on('SIGINT', async () => {
+  httpServerConst.close();
+  wsServerConst.close();
+  process.exit();
+});
