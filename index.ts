@@ -11,6 +11,7 @@ const httpServerConst = httpServer.listen(HTTP_PORT);
 const wsServerConst = wsServer(Number.parseInt(WS_PORT));
 
 process.on('SIGINT', async () => {
+  console.log('SIGINT signal received. Application closed.');
   httpServerConst.close();
   wsServerConst.close();
   process.exit();

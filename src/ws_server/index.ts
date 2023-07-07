@@ -1,12 +1,20 @@
 import { WebSocketServer, WebSocket, createWebSocketStream } from 'ws';
+import { handleCommands } from '../commands/commandParser';
+import { WebSocketWithId } from '../models/types';
 
 export const wsServer = (port: number): WebSocketServer => {
-  console.log(`Start WebSocket server on the ${port} port!`);
+  console.log(`Start WebSocket server on port ${port}`);
+  const connections = new Map<number, WebSocket>();
 
   const wss = new WebSocket.Server({ port });
+  let nextConnectionId = 1;
 
-  wss.on('connection', async (ws: WebSocket) => {
-    console.log('WebSocket client connected');
+  wss.on('connection', async (ws: WebSocketWithId) => {
+    const connectionId = nextConnectionId++;
+    connections.set(connectionId, ws);
+
+    ws.connectionId = connectionId;
+    console.log(`WebSocket client ${connectionId} connected`);
 
     const duplex = createWebSocketStream(ws, {
       decodeStrings: false,
@@ -16,8 +24,7 @@ export const wsServer = (port: number): WebSocketServer => {
     duplex.on('data', async (command: string) => {
       try {
         console.log(`\nCommand received: ${command}`);
-        // const [parseCommand, ...args] = command.split(' ');
-        
+        handleCommands(ws, command);
       } catch (error: unknown) {
         console.error(error);
       }
