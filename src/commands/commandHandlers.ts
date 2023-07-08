@@ -1,16 +1,29 @@
-import { RegRequestData } from '../models/types';
-import { generateRegResponse } from './messageSender';
-import { WebSocketWithId } from '../models/types';
+import { RegRequestData, RegResponseData } from '../models/types';
+import { sendRegResponse } from './messageSender';
+import { WebSocketWithId, Database } from '../models/types';
 
-export function handleRegistration(ws: WebSocketWithId, body: string) {
+export function handleRegistration(ws: WebSocketWithId, db:Database, body: string) {
   try {
     console.log('ws.id:', ws.connectionId);
     console.log('body:', body);
-    const user: RegRequestData = JSON.parse(body);
-    generateRegResponse(ws, user);
-    return user;
+    const req: RegRequestData = JSON.parse(body);
+    const player: RegResponseData = db.createPlayer(ws, req.name, req.password);
+    console.log(`handleRegistration, player: ${JSON.stringify(player)}`);
+    sendRegResponse(ws, player);
+    return;
   } catch (error) {
     console.error('Error parsing command:', error);
-    return null;
+    return;
   }
 }
+
+// export function handleCreateRoom(ws: WebSocketWithId, db: Database) {
+//   try {
+//     console.log('handleCreateRoom, ws.id:', ws.connectionId);
+//     generateUpdateRoomState(ws);
+//     return;
+//   } catch (error) {
+//     console.error('Error parsing command:', error);
+//     return null;
+//   }
+// }

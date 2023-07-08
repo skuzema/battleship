@@ -1,8 +1,8 @@
 import { WebSocketServer, WebSocket, createWebSocketStream } from 'ws';
 import { handleCommands } from '../commands/commandParser';
-import { WebSocketWithId } from '../models/types';
+import { WebSocketWithId, Database } from '../models/types';
 
-export const wsServer = (port: number): WebSocketServer => {
+export const wsServer = (port: number, db: Database): WebSocketServer => {
   console.log(`Start WebSocket server on port ${port}`);
   const connections = new Map<number, WebSocket>();
 
@@ -14,7 +14,7 @@ export const wsServer = (port: number): WebSocketServer => {
     connections.set(connectionId, ws);
 
     ws.connectionId = connectionId;
-    console.log(`WebSocket client ${connectionId} connected`);
+    console.log(`WebSocket client ${connectionId} connected to server`);
 
     const duplex = createWebSocketStream(ws, {
       decodeStrings: false,
@@ -23,15 +23,17 @@ export const wsServer = (port: number): WebSocketServer => {
 
     duplex.on('data', async (command: string) => {
       try {
-        console.log(`\nCommand received: ${command}`);
-        handleCommands(ws, command);
+        // console.log(`\nCommand received: ${command}`);
+        handleCommands(ws, db, command);
       } catch (error: unknown) {
         console.error(error);
       }
     });
 
     ws.on('close', () => {
-      console.log('WebSocket client hes been disconnected from server.');
+      console.log(
+        `Player ${ws.connectionId} has been disconnected from server.`,
+      );
     });
   });
 

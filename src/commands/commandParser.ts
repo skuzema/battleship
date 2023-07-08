@@ -1,17 +1,26 @@
-import { WebSocketWithId } from '../models/types';
-import { CommandType } from '../models/types';
-import { handleRegistration } from '../commands/commandHandlers';
+import { WebSocketWithId, Database } from '../models/types';
+import { Command } from '../models/types';
+import {
+  handleRegistration
+} from '../commands/commandHandlers';
 
-export function handleCommands(ws: WebSocketWithId, message: string) {
+export function handleCommands(
+  ws: WebSocketWithId,
+  db: Database,
+  message: string,
+) {
   try {
-    const command: CommandType = JSON.parse(message);
-    console.log(JSON.stringify(command), command.type);
+    const command: Command = JSON.parse(message);
+    console.log(
+      `Command type: ${command.type}`,
+      `command: ${JSON.stringify(command)}`,
+    );
     switch (command.type) {
       case 'reg':
-        handleRegistration(ws, command.data);
+        handleRegistration(ws, db, command.data);
         break;
       case 'create_room':
-        // handleCreateRoom();
+        // handleCreateRoom(ws, db);
         break;
       case 'add_user_to_room':
         // handleAddUserToRoom(command.data);
