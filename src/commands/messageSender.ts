@@ -32,9 +32,11 @@ export function sendUpdateRoomState(db: Database) {
       data: '',
       id: 0,
     };
+    const rooms: Rooms[] = [];
     singleRooms.forEach(function (value) {
+      console.log(`singleRooms: ${value.id}, ${value.name}`);
       const roomUsers: RoomUsers[] = [];
-      const rooms: Rooms[] = [];
+
       for (let i = 0; i < value.players.length; i++) {
         roomUsers.push({
           name: value.players[i]?.name,
@@ -42,9 +44,9 @@ export function sendUpdateRoomState(db: Database) {
         });
       }
       rooms.push({ roomId: value.id, roomUsers: roomUsers });
-      res.data = JSON.stringify(rooms);
     });
-    // console.log('sendUpdateRoomState:', JSON.stringify(res));
+    res.data = JSON.stringify(rooms);
+    console.log('sendUpdateRoomState:', JSON.stringify(res));
     players.forEach(function (value) {
       console.log(
         `Send Update Room State for ${value.ws.connectionId}: ${JSON.stringify(
