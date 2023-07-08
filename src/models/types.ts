@@ -44,20 +44,37 @@ export interface CreateGameData {
 }
 
 export enum ShipType {
-  small = "small",
-  medium = "medium",
-  large = "large",
-  huge = "huge"
+  small = 'small',
+  medium = 'medium',
+  large = 'large',
+  huge = 'huge',
 }
 
+export interface Ship {
+  position: {
+    x: number;
+    y: number;
+  };
+  direction: boolean;
+  length: number;
+  type: ShipType;
+}
 
+export interface AddShipsRequestData {
+  gameId: number;
+  ships: Ship[];
+  indexPlayer: number;
+}
 
+export interface StartGameResponseData {
+  ships: Ship[];
+  currentPlayerIndex: number;
+}
 
 export type Command = BaseCommandType<string>;
 export type RegRequestType = BaseCommandType<RegRequestData>;
 export type RegResponseType = BaseCommandType<RegResponseData>;
-export type UpdateRoomStateResponseType = BaseCommandType<string>;
-export type CreateGameResponseType = BaseCommandType<string>;
+export type BaseResponseType = BaseCommandType<string>;
 
 //  Class interfaces
 
@@ -74,11 +91,11 @@ export interface Room {
   players: Player[];
 }
 
-export interface Ship {
-  id: number;
-  type: string;
-  position: {
-    x: number;
-    y: number;
-  };
-}
+// export interface Ship {
+//   id: number;
+//   type: string;
+//   position: {
+//     x: number;
+//     y: number;
+//   };
+// }

@@ -4,10 +4,9 @@ import {
   WebSocketWithId,
   Command,
   RegResponseData,
-  UpdateRoomStateResponseType,
   RoomUsers,
   Rooms,
-  CreateGameResponseType,
+  BaseResponseType,
 } from '../models/types';
 
 export function sendRegResponse(ws: WebSocketWithId, res: RegResponseData) {
@@ -28,7 +27,7 @@ export function sendUpdateRoomState(db: Database) {
     console.log('Handle sendUpdateRoomState');
     const singleRooms = db.getRoomsWithSinglePlayer();
     const players = db.getPlayers();
-    const res: UpdateRoomStateResponseType = {
+    const res: BaseResponseType = {
       type: 'update_room',
       data: '',
       id: 0,
@@ -63,27 +62,60 @@ export function sendUpdateRoomState(db: Database) {
 export function sendCreateGame(game: Game) {
   // console.log(`sendCreateGame Game: ${JSON.stringify(game)}`);
   console.log(`sendCreateGame`);
-  const res: CreateGameResponseType = {
+  const res: BaseResponseType = {
     type: 'create_game',
-    data: JSON.stringify({ idGame: game.idGame, idPlayer: game.idPlayer }),
+    data: '',
     id: 0,
   };
   game.room.players.forEach(function (value) {
+    res.data = JSON.stringify({
+      idGame: game.idGame,
+      idPlayer: value.index,
+    });
+    // console.log(
+    //   `sendCreateGame id: ${value.index}, data: ${JSON.stringify(res)}`,
+    // );
     value.ws.send(JSON.stringify(res));
   });
 }
 
-// Generate response for adding user to room
-// export function generateCreateGameResponse(data) {
-//   const response = {
-//     type: 'create_game',
-//     data,
-//     id,
-//   };
-//   return JSON.stringify(response);
-// }
+export function sendStartGame(game: Game) {
+  console.log(`sendStartGame : ${game.idGame}`);
+  const res: BaseResponseType = {
+    type: 'start_game',
+    data: '',
+    id: 0,
+  };
+  game.room.players.forEach(function (value) {
+    res.data = JSON.stringify({
+      ships: game.getShips(value.index),
+      currentPlayerIndex: value.index,
+    });
+    // console.log(
+    //   `sendStartGame id: ${value.index}, data: ${JSON.stringify(res)}`,
+    // );
+    value.ws.send(JSON.stringify(res));
+  });
+  sendTurn(game);
+}
 
-// Generate response for updating room state
+export function sendTurn(game: Game, playerId?: number) {
+  const turnPlayerId = playerId ? playerId : game.room.players[0]?.index;
+  console.log(`sendTurn playerId: ${turnPlayerId}`);
+  const res: BaseResponseType = {
+    type: 'turn',
+    data: JSON.stringify({
+      currentPlayer: turnPlayerId,
+    }),
+    id: 0,
+  };
+  game.room.players.forEach(function (value) {
+    // console.log(
+    //   `sendStartGame id: ${value.index}, data: ${JSON.stringify(res)}`,
+    // );
+    value.ws.send(JSON.stringify(res));
+  });
+}
 
 /*
 // Generate response for updating winners

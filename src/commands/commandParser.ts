@@ -4,6 +4,7 @@ import {
   handleRegistration,
   handleCreateRoom,
   handleAddUserToRoom,
+  handleAddShips,
 } from '../commands/commandHandlers';
 
 export function handleCommands(

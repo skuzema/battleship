@@ -3,11 +3,14 @@ import {
   RegRequestData,
   RegResponseData,
   AddPlayerToRoomRequestData,
+  AddShipsRequestData,
+  Ship,
 } from '../models/types';
 import {
   sendRegResponse,
   sendUpdateRoomState,
   sendCreateGame,
+  sendStartGame,
 } from './messageSender';
 import { Database } from '../models/Database';
 import { Game } from 'models/Game';
@@ -61,18 +64,22 @@ export function handleAddUserToRoom(
   }
 }
 
-export function handleAddShips(ws: WebSocketWithId, db: Database, body: string) {
+export function handleAddShips(
+  ws: WebSocketWithId,
+  db: Database,
+  body: string,
+) {
   try {
     console.log(`handleAddShips: ws.id:${ws.connectionId}, body:${body}`);
     const req: AddShipsRequestData = JSON.parse(body);
-    const game: Game | null = db.addPlayerToRoom(
-      req.indexRoom,
-      ws.connectionId,
+    const game = db.getGame(req.gameId);
+    const ships: Map<number, Ship[]> | undefined = game?.addShips(
+      req.indexPlayer,
+      req.ships,
     );
-    if (game) {
-      sendCreateGame(game);
+    if (game && ships?.size === 2) {
+      sendStartGame(game);
     }
-    sendUpdateRoomState(db);
   } catch (error) {
     console.error(error);
   }

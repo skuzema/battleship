@@ -1,4 +1,4 @@
-import { WebSocketWithId, Ship, RegResponseData } from '../models/types';
+import { WebSocketWithId, RegResponseData } from '../models/types';
 import { Player } from './Player';
 import { Room } from './Room';
 import { Game } from './Game';
@@ -7,12 +7,10 @@ export class Database {
   private players = new Map<number, Player>();
   private rooms = new Map<number, Room>();
   private games = new Map<number, Game>();
-  private ships: Ship[] = [];
 
   private nextPlayerId = 0;
   private nextRoomId = 0;
   private nextGameId = 0;
-  private nextShipId = 0;
 
   // Player methods
   public createPlayer(
@@ -155,25 +153,8 @@ export class Database {
     return returnValue;
   }
 
-  // Ship methods
-  public createShip(type: string, position: { x: number; y: number }): Ship {
-    const ship: Ship = {
-      id: this.nextShipId++,
-      type,
-      position,
-    };
-    this.ships.push(ship);
-    return ship;
-  }
-
   // Game methods
-  // public createGame(players: Player[], ships: Ship[]): Game | null{
-  //   const game: Game = {
-  //     id: this.nextGameId++,
-  //     players,
-  //     ships,
-  //   };
-  //   this.games.push(game);
-  //   return null;
-  // }
+  public getGame(gameId: number): Game | undefined {
+    return this.games.get(gameId);
+  }
 }
