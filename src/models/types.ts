@@ -34,10 +34,30 @@ export interface Rooms {
   roomUsers: RoomUsers[];
 }
 
+export interface AddPlayerToRoomRequestData {
+  indexRoom: number;
+}
+
+export interface CreateGameData {
+  idGame: number;
+  idPlayer: number;
+}
+
+export enum ShipType {
+  small = "small",
+  medium = "medium",
+  large = "large",
+  huge = "huge"
+}
+
+
+
+
 export type Command = BaseCommandType<string>;
 export type RegRequestType = BaseCommandType<RegRequestData>;
 export type RegResponseType = BaseCommandType<RegResponseData>;
 export type UpdateRoomStateResponseType = BaseCommandType<string>;
+export type CreateGameResponseType = BaseCommandType<string>;
 
 //  Class interfaces
 
@@ -61,10 +81,4 @@ export interface Ship {
     x: number;
     y: number;
   };
-}
-
-export interface Game {
-  id: number;
-  players: Player[];
-  ships: Ship[];
 }

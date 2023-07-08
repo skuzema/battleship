@@ -1,3 +1,4 @@
+import { Game } from 'models/Game';
 import { Database } from '../models/Database';
 import {
   WebSocketWithId,
@@ -6,6 +7,7 @@ import {
   UpdateRoomStateResponseType,
   RoomUsers,
   Rooms,
+  CreateGameResponseType,
 } from '../models/types';
 
 export function sendRegResponse(ws: WebSocketWithId, res: RegResponseData) {
@@ -58,6 +60,19 @@ export function sendUpdateRoomState(db: Database) {
   }
 }
 
+export function sendCreateGame(game: Game) {
+  // console.log(`sendCreateGame Game: ${JSON.stringify(game)}`);
+  console.log(`sendCreateGame`);
+  const res: CreateGameResponseType = {
+    type: 'create_game',
+    data: JSON.stringify({ idGame: game.idGame, idPlayer: game.idPlayer }),
+    id: 0,
+  };
+  game.room.players.forEach(function (value) {
+    value.ws.send(JSON.stringify(res));
+  });
+}
+
 // Generate response for adding user to room
 // export function generateCreateGameResponse(data) {
 //   const response = {
@@ -81,17 +96,6 @@ export function generateUpdateWinnersResponse(data) {
   return JSON.stringify(response);
 }
 
-
-
-// Generate response for starting the game
-export function generateStartGameResponse(data) {
-  const response = {
-    type: 'start_game',
-    data,
-    id,
-  };
-  return JSON.stringify(response);
-}
 
 // Generate response for attack
 export function generateAttackResponse(data) {

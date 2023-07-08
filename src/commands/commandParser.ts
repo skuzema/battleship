@@ -3,6 +3,7 @@ import { Database } from '../models/Database';
 import {
   handleRegistration,
   handleCreateRoom,
+  handleAddUserToRoom,
 } from '../commands/commandHandlers';
 
 export function handleCommands(
@@ -24,10 +25,10 @@ export function handleCommands(
         handleCreateRoom(ws, db);
         break;
       case 'add_user_to_room':
-        // handleAddUserToRoom(command.data);
+        handleAddUserToRoom(ws, db, command.data);
         break;
       case 'add_ships':
-        // handleAddShips(ws, command.data);
+        handleAddShips(ws, db, command.data);
         break;
       case 'attack':
         // handleAttack(ws, command.data);

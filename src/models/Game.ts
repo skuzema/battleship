@@ -1,24 +1,25 @@
-import { Player } from "./types";
+import { Room } from './Room';
 
 export class Game {
-  private gameId: number;
-  private players: Player[];
+  private _gameId: number;
+  private _room: Room;
+  private _turn: number;
 
-  constructor(gameId: number) {
-    this.gameId = gameId;
-    this.players = [];
+  constructor(gameId: number, room: Room) {
+    this._gameId = gameId;
+    this._room = room;
+    this._turn = room.players[0]?.index ?? 0;
   }
 
-  // Getters
-  getGameId(): number {
-    return this.gameId;
+  public get idGame() {
+    return this._gameId;
   }
 
-  // Game operations
-  addPlayer(player: Player): void {
-    this.players.push(player);
+  public get room() {
+    return this._room;
   }
 
-  // Other methods
-  // ...
+  public get idPlayer() {
+    return this._turn;
+  }
 }

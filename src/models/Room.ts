@@ -25,4 +25,11 @@ export class Room {
   public get players() {
     return this._roomPlayers;
   }
+
+  public addPlayerToRoom(player: Player): number {
+    if (this._roomPlayers.find((o) => o.index !== player.index)) {
+      this._roomPlayers.push(player);
+    }
+    return this._roomPlayers.length;
+  }
 }
