@@ -1,15 +1,10 @@
-import {
-  WebSocketWithId,
-  Room,
-  Ship,
-  Game,
-  RegResponseData,
-} from '../models/types';
+import { WebSocketWithId, Ship, Game, RegResponseData } from '../models/types';
 import { Player } from './Player';
+import { Room } from './Room';
 
 export class Database {
   private players = new Map<number, Player>();
-  private rooms: Room[] = [];
+  private rooms = new Map<number, Room>();
   private ships: Ship[] = [];
   private games: Game[] = [];
 
@@ -37,29 +32,44 @@ export class Database {
       this.players.set(this.nextPlayerId, player);
       responseData.name = player.name;
       responseData.index = player.index;
-      console.log(`createPlayer, responseData: ${JSON.stringify(responseData)}`);
+      console.log(
+        `createPlayer, responseData: ${JSON.stringify(responseData)}`,
+      );
       this.players.forEach(function (value, key) {
         console.log(
-          `createPlayer, players = key: ${key} value: ${JSON.stringify({index: value.index, name: value.name})}`,
+          `createPlayer, player key: ${key} value: ${JSON.stringify({
+            index: value.index,
+            name: value.name,
+          })}`,
         );
       });
 
       return responseData;
     } else {
-      console.log(`createPlayer, validationError: ${JSON.stringify(validationError)}`);
+      console.log(
+        `createPlayer, validationError: ${JSON.stringify(validationError)}`,
+      );
       return validationError;
     }
+  }
+
+  public getPlayers(): Player[] {
+    const res: Player[] = [];
+    this.players.forEach(function (value) {
+      res.push(value);
+    });
+    return res;
   }
 
   private validatePlayer(
     name: string,
     password: string,
   ): RegResponseData | null {
-    const validationResult:RegResponseData = {
-        name: name,
-        index: 0,
-        error: true,
-        errorText: ''
+    const validationResult: RegResponseData = {
+      name: name,
+      index: 0,
+      error: true,
+      errorText: '',
     };
     for (const player of this.players.values()) {
       if (player.name === name) {
@@ -68,7 +78,8 @@ export class Database {
       }
     }
     if (name.length < 5) {
-      validationResult.errorText ='Player name should be longer than 5 characters.';
+      validationResult.errorText =
+        'Player name should be longer than 5 characters.';
       return validationResult;
     }
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$/;
@@ -81,18 +92,50 @@ export class Database {
   }
 
   // Room methods
-  public createRoom(name: string): Room {
-    const room: Room = {
-      id: this.nextRoomId++,
-      name,
-      players: [],
-    };
-    this.rooms.push(room);
-    return room;
+  public createRoom(ws: WebSocketWithId): Map<number, Room> | null {
+    if (this.playerInRoom(ws.connectionId)) {
+      return null;
+    }
+    this.nextRoomId++;
+    const room = new Room(this.nextRoomId, this.players.get(ws.connectionId));
+    this.rooms.set(this.nextRoomId, room);
+    this.rooms.forEach(function (value, key) {
+      console.log(
+        `createRoom, room key: ${key} value: ${JSON.stringify({
+          id: value.id,
+          name: value.name,
+        })}`,
+      );
+      value.players.forEach(function (value1, key1) {
+        console.log(
+          `createRoom, player key: ${key1} value: ${JSON.stringify({
+            index: value1.index,
+            name: value1.name,
+          })}`,
+        );
+      });
+    });
+    return this.rooms;
   }
 
-  public getRoom(id: number): Room | undefined {
-    return this.rooms.find((room) => room.id === id);
+  public getRoomsWithSinglePlayer(): Room[] {
+    const singlePlayerRooms: Room[] = [];
+    this.rooms.forEach(function (value) {
+      if (value.players.length < 2) {
+        singlePlayerRooms.push(value);
+      }
+    });
+    return singlePlayerRooms;
+  }
+
+  private playerInRoom(playerId: number): boolean {
+    let returnValue = false;
+    this.rooms.forEach(function (value) {
+      if (value.players.find((o) => o.index === playerId)) {
+        returnValue = true;
+      }
+    });
+    return returnValue;
   }
 
   // Ship methods
@@ -106,10 +149,6 @@ export class Database {
     return ship;
   }
 
-  public getShip(id: number): Ship | undefined {
-    return this.ships.find((ship) => ship.id === id);
-  }
-
   // Game methods
   public createGame(players: Player[], ships: Ship[]): Game {
     const game: Game = {
@@ -119,9 +158,5 @@ export class Database {
     };
     this.games.push(game);
     return game;
-  }
-
-  public getGame(id: number): Game | undefined {
-    return this.games.find((game) => game.id === id);
   }
 }

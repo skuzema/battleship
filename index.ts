@@ -7,7 +7,7 @@ dotenv.config();
 const HTTP_PORT = process.env.HTTP_PORT || 8181;
 const WS_PORT = process.env.WS_PORT || '3000';
 
-console.log(`Start static http server on the ${HTTP_PORT} port!`);
+console.log(`Start static Http server on port ${HTTP_PORT}.`);
 const httpServerConst = httpServer.listen(HTTP_PORT);
 const wsServerConst = wsServer(Number.parseInt(WS_PORT), db);
 

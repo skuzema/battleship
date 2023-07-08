@@ -1,24 +1,28 @@
 import { Player } from '../models/types';
 
 export class Room {
-  private roomId: number;
-  private roomUsers: Player[];
+  private _roomId: number;
+  private _roomName: string;
+  private _roomPlayers: Player[];
 
-  constructor(roomId: number) {
-    this.roomId = roomId;
-    this.roomUsers = [];
+  constructor(roomId: number, player: Player | undefined) {
+    this._roomId = roomId;
+    this._roomName = `Room N${roomId.toString()}`;
+    this._roomPlayers = [];
+    if (player) {
+      this._roomPlayers.push(player);
+    }
   }
 
-  // Getters
-  getRoomId(): number {
-    return this.roomId;
+  public get id() {
+    return this._roomId;
   }
 
-  // Room operations
-  addUserToRoom(player: Player): void {
-    this.roomUsers.push(player);
+  public get name() {
+    return this._roomName;
   }
 
-  // Other methods
-  // ...
+  public get players() {
+    return this._roomPlayers;
+  }
 }

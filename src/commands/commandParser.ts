@@ -1,7 +1,8 @@
-import { WebSocketWithId, Database } from '../models/types';
-import { Command } from '../models/types';
+import { WebSocketWithId, Command } from '../models/types';
+import { Database } from '../models/Database';
 import {
-  handleRegistration
+  handleRegistration,
+  handleCreateRoom,
 } from '../commands/commandHandlers';
 
 export function handleCommands(
@@ -20,7 +21,7 @@ export function handleCommands(
         handleRegistration(ws, db, command.data);
         break;
       case 'create_room':
-        // handleCreateRoom(ws, db);
+        handleCreateRoom(ws, db);
         break;
       case 'add_user_to_room':
         // handleAddUserToRoom(command.data);

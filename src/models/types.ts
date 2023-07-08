@@ -24,9 +24,20 @@ export interface RegResponseData {
   errorText: string;
 }
 
+export interface RoomUsers {
+  name: string | undefined;
+  index: number | undefined;
+}
+
+export interface Rooms {
+  roomId: number;
+  roomUsers: RoomUsers[];
+}
+
 export type Command = BaseCommandType<string>;
 export type RegRequestType = BaseCommandType<RegRequestData>;
 export type RegResponseType = BaseCommandType<RegResponseData>;
+export type UpdateRoomStateResponseType = BaseCommandType<string>;
 
 //  Class interfaces
 
@@ -56,18 +67,4 @@ export interface Game {
   id: number;
   players: Player[];
   ships: Ship[];
-}
-
-export interface Database {
-  createPlayer(
-    ws: WebSocketWithId,
-    name: string,
-    password: string,
-  ): RegResponseData;
-  createRoom(name: string): Room;
-  getRoom(id: number): Room | undefined;
-  createShip(type: string, position: { x: number; y: number }): Ship;
-  getShip(id: number): Ship | undefined;
-  createGame(players: Player[], ships: Ship[]): Game;
-  getGame(id: number): Game | undefined;
 }

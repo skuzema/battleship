@@ -1,9 +1,10 @@
 import { WebSocketServer, WebSocket, createWebSocketStream } from 'ws';
 import { handleCommands } from '../commands/commandParser';
-import { WebSocketWithId, Database } from '../models/types';
+import { WebSocketWithId } from '../models/types';
+import {  Database } from '../models/Database';
 
 export const wsServer = (port: number, db: Database): WebSocketServer => {
-  console.log(`Start WebSocket server on port ${port}`);
+  console.log(`Start WebSocket server on port ${port}.`);
   const connections = new Map<number, WebSocket>();
 
   const wss = new WebSocket.Server({ port });

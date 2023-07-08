@@ -1,7 +1,13 @@
-import { WebSocketWithId } from '../models/types';
-import { Command, RegResponseData } from '../models/types';
+import { Database } from '../models/Database';
+import {
+  WebSocketWithId,
+  Command,
+  RegResponseData,
+  UpdateRoomStateResponseType,
+  RoomUsers,
+  Rooms,
+} from '../models/types';
 
-// Generate response for player registration/login
 export function sendRegResponse(ws: WebSocketWithId, res: RegResponseData) {
   try {
     const response: Command = {
@@ -15,26 +21,42 @@ export function sendRegResponse(ws: WebSocketWithId, res: RegResponseData) {
   }
 }
 
-// export function generateUpdateRoomState(ws: WebSocketWithId) {
-//   try {
-//     console.log('Handle create room');
-//     const responseData: RegResponseData = {
-//       name: req.name ?? 'anonymous',
-//       index: ws.connectionId,
-//       error: false,
-//       errorText: '',
-//     };
-//     const response: Command = {
-//       type: 'reg',
-//       data: JSON.stringify(responseData),
-//       id: 0,
-//     };
-//     ws.send(JSON.stringify(response));
-//   } catch (error: unknown) {
-//     console.error('Error parsing command:', error);
-//     return;
-//   }
-// }
+export function sendUpdateRoomState(db: Database) {
+  try {
+    console.log('Handle sendUpdateRoomState');
+    const singleRooms = db.getRoomsWithSinglePlayer();
+    const players = db.getPlayers();
+    const res: UpdateRoomStateResponseType = {
+      type: 'update_room',
+      data: '',
+      id: 0,
+    };
+    singleRooms.forEach(function (value) {
+      const roomUsers: RoomUsers[] = [];
+      const rooms: Rooms[] = [];
+      for (let i = 0; i < value.players.length; i++) {
+        roomUsers.push({
+          name: value.players[i]?.name,
+          index: value.players[i]?.index,
+        });
+      }
+      rooms.push({ roomId: value.id, roomUsers: roomUsers });
+      res.data = JSON.stringify(rooms);
+    });
+    // console.log('sendUpdateRoomState:', JSON.stringify(res));
+    players.forEach(function (value) {
+      console.log(
+        `Send Update Room State for ${value.ws.connectionId}: ${JSON.stringify(
+          res,
+        )}`,
+      );
+      value.ws.send(JSON.stringify(res));
+    });
+  } catch (error: unknown) {
+    console.error(error);
+    return;
+  }
+}
 
 // Generate response for adding user to room
 // export function generateCreateGameResponse(data) {
