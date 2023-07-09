@@ -95,12 +95,12 @@ export function handleAddShips(
 
 export function handleAttack(ws: WebSocketWithId, db: Database, body: string) {
   try {
-    console.log(`handleAttack: ws.id:${ws.connectionId}, body:${body}`);
+    // console.log(`handleAttack: ws.id:${ws.connectionId}, body:${body}`);
     const req: AttackRequestData = JSON.parse(body);
     const game = db.getGameById(req.gameId);
-    console.log(`handleAttack: gameId:${game?.idGame}`);
+    // console.log(`handleAttack: gameId:${game?.idGame}`);
     const res: AttackResponseData | undefined= game?.attack(req);
-    console.log(`handleAttack: response:${JSON.stringify(res)}`);
+    // console.log(`handleAttack: response:${JSON.stringify(res)}`);
     if (res) {
       sendAttackResponse(ws, res);
     }

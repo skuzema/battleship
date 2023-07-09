@@ -19,12 +19,27 @@ export class Field {
 
     if (direction) {
       for (let i = y; i < y + length; i++) {
-        field[i][x] = CellStatus.Ship;
+        field[i][x] = this.getShipSize(ship.type);
       }
     } else {
       for (let i = x; i < x + length; i++) {
-        field[y][i] = CellStatus.Ship;
+        field[y][i] = this.getShipSize(ship.type);
       }
+    }
+  }
+
+  private getShipSize(type: string): CellStatus {
+    switch (type) {
+      case 'small':
+        return CellStatus.Small;
+      case 'medium':
+        return CellStatus.Medium;
+      case 'large':
+        return CellStatus.Large;
+      case 'huge':
+        return CellStatus.Huge;
+      default:
+        return CellStatus.Empty;
     }
   }
 

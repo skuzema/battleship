@@ -73,7 +73,15 @@ export interface StartGameResponseData {
 
 export enum CellStatus {
   Empty,
-  Ship,
+  Miss,
+  Shot,
+  Small,
+  Medium,
+  Large,
+  Huge,
+}
+
+export enum AttackStatus {
   Shot = 'shot',
   Miss = 'miss',
   Killed = 'killed',
@@ -92,7 +100,7 @@ export interface AttackResponseData {
     y: number;
   };
   currentPlayer: number;
-  status: CellStatus;
+  status: AttackStatus;
 }
 
 export interface RandomAttackRequestData {

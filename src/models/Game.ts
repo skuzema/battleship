@@ -4,6 +4,7 @@ import {
   Ship,
   AttackRequestData,
   CellStatus,
+  AttackStatus,
   AttackResponseData,
 } from './types';
 
@@ -65,143 +66,101 @@ export class Game {
     return enemyPlayerId;
   }
 
-  public attack(attackObj: AttackRequestData): AttackResponseData | undefined{
+  public attack(attackObj: AttackRequestData): AttackResponseData | undefined {
     const { x, y, indexPlayer } = attackObj;
     console.log(`attack x: ${x}, y: ${y}, indexPlayer: ${indexPlayer}`);
 
-    const currentPlayerField = this.getFields(indexPlayer);
     const enemyPlayerId = this.getEnemyPlayerId(indexPlayer);
 
-    if (currentPlayerField !== undefined && enemyPlayerId !== undefined) {
+    if (enemyPlayerId !== undefined) {
       const enemyPlayerField = this.getFields(enemyPlayerId);
-
       if (enemyPlayerField !== undefined) {
         const targetCellStatus = enemyPlayerField.field[y][x];
 
-        if (targetCellStatus === CellStatus.Empty) {
+        if (
+          targetCellStatus === CellStatus.Empty ||
+          targetCellStatus === CellStatus.Miss
+        ) {
           enemyPlayerField.field[y][x] = CellStatus.Miss;
-          currentPlayerField.field[y][x] = CellStatus.Miss;
-          return this.createAttackResponseData(x, y, indexPlayer, CellStatus.Miss);
-        } else if (targetCellStatus === CellStatus.Ship) {
-          enemyPlayerField.field[y][x] = CellStatus.Shot;
-          currentPlayerField.field[y][x] = CellStatus.Shot;
-
-          const ship = this.findShipByPosition(this.getShips(enemyPlayerId), {
+          return this.createAttackResponseData(
             x,
             y,
-          });
-
-          if (ship !== undefined) {
-            const shipCells = this.getShipCells(ship);
-            const shipShotCells = shipCells.filter(
-              (cell) =>
-                enemyPlayerField.field[cell.y][cell.x] === CellStatus.Shot,
-            );
-
-            if (shipShotCells.length === ship.length) {
-              this.markSurroundingCells(
-                enemyPlayerField.field,
-                shipCells,
-                CellStatus.Miss,
-              );
-              this.markSurroundingCells(
-                currentPlayerField.field,
-                shipCells,
-                CellStatus.Miss,
-              );
-              return this.createAttackResponseData(
-                x,
-                y,
-                indexPlayer,
-                CellStatus.Killed,
-              );
-            } else {
-              return this.createAttackResponseData(
-                x,
-                y,
-                indexPlayer,
-                CellStatus.Shot,
-              );
-            }
-          }
+            indexPlayer,
+            AttackStatus.Miss,
+          );
+        } else {
+          enemyPlayerField.field[y][x] = CellStatus.Shot;
+          const ship = this.getShipByCell(enemyPlayerId, { x, y });
+          const attackResult: AttackStatus = this.isShipKilled(
+            enemyPlayerField,
+            ship,
+          )
+            ? AttackStatus.Killed
+            : AttackStatus.Shot;
+          return this.createAttackResponseData(x, y, indexPlayer, attackResult);
         }
       }
     }
   }
 
+  private isShipKilled(playerField: Field, ship: Ship|undefined): boolean {
+    if (playerField !== undefined && ship !== undefined) {
+      const shipCells = this.getShipCells(ship);
+      const shipShotCells = shipCells.filter(
+        (cell) => playerField.field[cell.y][cell.x] === CellStatus.Shot,
+      );
+
+      return shipShotCells.length === shipCells.length;
+    }
+    return false;
+  }
+
+  private getShipByCell(
+    playerId: number,
+    cell: { x: number; y: number },
+  ): Ship | undefined {
+    const currentPlayerField = this.getFields(playerId);
+
+    if (currentPlayerField !== undefined) {
+      const ships = this.getShips(playerId);
+
+      for (const ship of ships) {
+        const shipCells = this.getShipCells(ship);
+        if (
+          shipCells.some(
+            (shipCell: { x: number; y: number }) =>
+              shipCell.x === cell.x && shipCell.y === cell.y,
+          )
+        ) {
+          return ship;
+        }
+      }
+    }
+    return undefined;
+  }
+
   private getShipCells(ship: Ship): { x: number; y: number }[] {
     const cells: { x: number; y: number }[] = [];
-    const { x, y } = ship.position;
+    const { position, direction, length } = ship;
+    const { x, y } = position;
 
-    if (ship.direction) {
-      for (let i = y; i < y + ship.length; i++) {
+    if (direction) {
+      for (let i = y; i < y + length; i++) {
         cells.push({ x, y: i });
       }
     } else {
-      for (let i = x; i < x + ship.length; i++) {
+      for (let i = x; i < x + length; i++) {
         cells.push({ x: i, y });
       }
     }
-
     return cells;
-  }
-
-  private findShipByPosition(
-    ships: Ship[],
-    position: { x: number; y: number },
-  ): Ship | undefined {
-    return ships.find((ship) => {
-      const { x, y } = position;
-      if (ship.direction) {
-        return (
-          x === ship.position.y &&
-          y >= ship.position.x &&
-          y < ship.position.x + ship.length
-        );
-      } else {
-        return (
-          x >= ship.position.x &&
-          x < ship.position.x + ship.length &&
-          y === ship.position.y
-        );
-      }
-    });
-  }
-
-  private markSurroundingCells(
-    field: CellStatus[][],
-    shipCells: { x: number; y: number }[],
-    status: CellStatus,
-  ) {
-    shipCells.forEach((cell) => {
-      const { x, y } = cell;
-      this.markCell(field, x - 1, y - 1, status);
-      this.markCell(field, x, y - 1, status);
-      this.markCell(field, x + 1, y - 1, status);
-      this.markCell(field, x - 1, y, status);
-      this.markCell(field, x + 1, y, status);
-      this.markCell(field, x - 1, y + 1, status);
-      this.markCell(field, x, y + 1, status);
-      this.markCell(field, x + 1, y + 1, status);
-    });
-  }
-
-  private markCell(
-    field: CellStatus[][],
-    x: number,
-    y: number,
-    status: CellStatus,
-  ) {
-    if (x >= 0 && x < field.length && y >= 0 && y < field.length) {
-      field[y][x] = status;
-    }
   }
 
   private createAttackResponseData(
     x: number,
     y: number,
     currentPlayer: number,
-    status: CellStatus,
+    status: AttackStatus,
   ): AttackResponseData {
     return {
       position: {

@@ -132,17 +132,11 @@ export function sendAttackResponse(
       }),
       id: 0,
     };
-    // game.room.players.forEach(function (value) {
-    //   // console.log(
-    //   //   `sendStartGame id: ${value.index}, data: ${JSON.stringify(res)}`,
-    //   // );
-    //   value.ws.send(JSON.stringify(res));
-    // });
-    // console.log(
-    //   `sendAttackResponse socket: ${ws.connectionId}, data: ${JSON.stringify(
-    //     res,
-    //   )}`,
-    // );
+    console.log(
+      `sendAttackResponse socket: ${ws.connectionId}, data: ${JSON.stringify(
+        res,
+      )}`,
+    );
     ws.send(JSON.stringify(res));
   }
 }
