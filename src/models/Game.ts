@@ -278,6 +278,30 @@ export class Game {
     }
   }
 
+  public checkWinner(currentPlayerId: number): boolean {
+    const enemyPlayerId = this.getEnemyPlayerId(currentPlayerId);
+    if (enemyPlayerId !== undefined) {
+      const enemyPlayerField = this.getFields(enemyPlayerId);
+      if (enemyPlayerField !== undefined) {
+        for (let y = 0; y < 10; y++) {
+          for (let x = 0; x < 10; x++) {
+            const cellStatus = enemyPlayerField.field[y][x];
+            if (
+              cellStatus === CellStatus.Small ||
+              cellStatus === CellStatus.Medium ||
+              cellStatus === CellStatus.Large ||
+              cellStatus === CellStatus.Huge
+            ) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   private getEmptyOrShipCells(field: Field): { x: number; y: number }[] {
     const emptyOrShipCells: { x: number; y: number }[] = [];
 
