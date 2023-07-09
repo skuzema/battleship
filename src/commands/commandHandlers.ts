@@ -98,8 +98,11 @@ export function handleAttack(db: Database, body: string) {
     // console.log(`handleAttack: ws.id:${ws.connectionId}, body:${body}`);
     const req: AttackRequestData = JSON.parse(body);
     const game = db.getGameById(req.gameId);
+    if (!game || (game && game.turn !== req.indexPlayer)) {
+      return;
+    }
     // console.log(`handleAttack: gameId:${game?.idGame}`);
-    const res: AttackResponseData | undefined= game?.attack(req);
+    const res: AttackResponseData | undefined = game?.attack(req);
     // console.log(`handleAttack: response:${JSON.stringify(res)}`);
     if (res && game) {
       sendAttackResponse(game, res);
