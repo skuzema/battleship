@@ -108,6 +108,10 @@ export interface RandomAttackRequestData {
   indexPlayer: number;
 }
 
+export interface FinishGameResponseData {
+  winPlayer: number;
+}
+
 export type Command = BaseCommandType<string>;
 export type RegRequestType = BaseCommandType<RegRequestData>;
 export type RegResponseType = BaseCommandType<RegResponseData>;

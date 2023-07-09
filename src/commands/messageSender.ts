@@ -138,39 +138,30 @@ export function sendAttackResponse(
       //   }, data: ${JSON.stringify(res)}`,
       // );
       value.ws.send(JSON.stringify(res));
+      if(game.checkWinner(value.index)) {
+        sendFinishGame(game, value.index);
+      }
     });
     sendTurn(game);
   }
 }
 
-/*
-// Generate response for updating winners
-export function generateUpdateWinnersResponse(data) {
-  const response = {
-    type: 'update_winners',
-    data,
-    id,
-  };
-  return JSON.stringify(response);
-}
-
-// Generate response for changing player's turn
-export function generateTurnResponse(data) {
-  const response = {
-    type: 'turn',
-    data,
-    id,
-  };
-  return JSON.stringify(response);
-}
-
-// Generate response for finishing the game
-export function generateFinishGameResponse(data) {
-  const response = {
+export function sendFinishGame(game: Game, playerId: number) {
+  console.log(`sendFinishGame playerId: ${playerId}`);
+  const res: BaseResponseType = {
     type: 'finish',
-    data,
-    id,
+    data: JSON.stringify({
+      winPlayer: playerId,
+    }),
+    id: 0,
   };
-  return JSON.stringify(response);
+  game.room.players.forEach(function (value) {
+    // console.log(
+    //   `sendAttackResponse socket: ${
+    //     value.ws.connectionId
+    //   }, data: ${JSON.stringify(res)}`,
+    // );
+    value.ws.send(JSON.stringify(res));
+  });
+  sendTurn(game);
 }
-*/
