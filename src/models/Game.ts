@@ -84,6 +84,7 @@ export class Game {
           targetCellStatus === CellStatus.Miss
         ) {
           enemyPlayerField.field[y][x] = CellStatus.Miss;
+          this._turn = enemyPlayerId;
           return this.createAttackResponseData(
             x,
             y,
@@ -116,6 +117,7 @@ export class Game {
               );
             }
           }
+          this._turn = indexPlayer;
           return this.createAttackResponseData(x, y, indexPlayer, attackResult);
         }
       }
