@@ -5,12 +5,15 @@ import {
   AddPlayerToRoomRequestData,
   AddShipsRequestData,
   Ship,
+  AttackRequestData,
+  AttackResponseData,
 } from '../models/types';
 import {
   sendRegResponse,
   sendUpdateRoomState,
   sendCreateGame,
   sendStartGame,
+  sendAttackResponse,
 } from './messageSender';
 import { Database } from '../models/Database';
 import { Game } from 'models/Game';
@@ -73,7 +76,7 @@ export function handleAddShips(
   try {
     console.log(`handleAddShips: ws.id:${ws.connectionId}, body:${body}`);
     const req: AddShipsRequestData = JSON.parse(body);
-    const game = db.getGame(req.gameId);
+    const game = db.getGameById(req.gameId);
     const ships: Map<number, Ship[]> | undefined = game?.addShips(
       req.indexPlayer,
       req.ships,
@@ -84,6 +87,22 @@ export function handleAddShips(
     );
     if (game && ships?.size === 2 && fields?.size === 2) {
       sendStartGame(game);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export function handleAttack(ws: WebSocketWithId, db: Database, body: string) {
+  try {
+    console.log(`handleAttack: ws.id:${ws.connectionId}, body:${body}`);
+    const req: AttackRequestData = JSON.parse(body);
+    const game = db.getGameById(req.gameId);
+    console.log(`handleAttack: gameId:${game?.idGame}`);
+    const res: AttackResponseData | undefined= game?.attack(req);
+    console.log(`handleAttack: response:${JSON.stringify(res)}`);
+    if (res) {
+      sendAttackResponse(ws, res);
     }
   } catch (error) {
     console.error(error);

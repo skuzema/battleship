@@ -154,7 +154,7 @@ export class Database {
   }
 
   // Game methods
-  public getGame(gameId: number): Game | undefined {
+  public getGameById(gameId: number): Game | undefined {
     return this.games.get(gameId);
   }
 }

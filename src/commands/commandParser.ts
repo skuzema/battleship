@@ -5,6 +5,7 @@ import {
   handleCreateRoom,
   handleAddUserToRoom,
   handleAddShips,
+  handleAttack,
 } from '../commands/commandHandlers';
 
 export function handleCommands(
@@ -32,7 +33,7 @@ export function handleCommands(
         handleAddShips(ws, db, command.data);
         break;
       case 'attack':
-        // handleAttack(ws, command.data);
+        handleAttack(ws, db, command.data);
         break;
       case 'randomAttack':
         // handleRandomAttack(ws, command.data);

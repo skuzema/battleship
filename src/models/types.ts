@@ -74,11 +74,31 @@ export interface StartGameResponseData {
 export enum CellStatus {
   Empty,
   Ship,
-  Shot,
-  Miss,
-  Killed
+  Shot = 'shot',
+  Miss = 'miss',
+  Killed = 'killed',
 }
 
+export interface AttackRequestData {
+  gameId: number;
+  x: number;
+  y: number;
+  indexPlayer: number;
+}
+
+export interface AttackResponseData {
+  position: {
+    x: number;
+    y: number;
+  };
+  currentPlayer: number;
+  status: CellStatus;
+}
+
+export interface RandomAttackRequestData {
+  gameId: number;
+  indexPlayer: number;
+}
 
 export type Command = BaseCommandType<string>;
 export type RegRequestType = BaseCommandType<RegRequestData>;

@@ -7,6 +7,7 @@ import {
   RoomUsers,
   Rooms,
   BaseResponseType,
+  AttackResponseData,
 } from '../models/types';
 
 export function sendRegResponse(ws: WebSocketWithId, res: RegResponseData) {
@@ -119,22 +120,38 @@ export function sendTurn(game: Game, playerId?: number) {
   });
 }
 
+export function sendAttackResponse(
+  ws: WebSocketWithId,
+  attackResponse: AttackResponseData | undefined,
+) {
+  if (attackResponse) {
+    const res: BaseResponseType = {
+      type: 'attack',
+      data: JSON.stringify({
+        ...attackResponse,
+      }),
+      id: 0,
+    };
+    // game.room.players.forEach(function (value) {
+    //   // console.log(
+    //   //   `sendStartGame id: ${value.index}, data: ${JSON.stringify(res)}`,
+    //   // );
+    //   value.ws.send(JSON.stringify(res));
+    // });
+    // console.log(
+    //   `sendAttackResponse socket: ${ws.connectionId}, data: ${JSON.stringify(
+    //     res,
+    //   )}`,
+    // );
+    ws.send(JSON.stringify(res));
+  }
+}
+
 /*
 // Generate response for updating winners
 export function generateUpdateWinnersResponse(data) {
   const response = {
     type: 'update_winners',
-    data,
-    id,
-  };
-  return JSON.stringify(response);
-}
-
-
-// Generate response for attack
-export function generateAttackResponse(data) {
-  const response = {
-    type: 'attack',
     data,
     id,
   };
