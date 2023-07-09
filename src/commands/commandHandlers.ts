@@ -93,7 +93,7 @@ export function handleAddShips(
   }
 }
 
-export function handleAttack(ws: WebSocketWithId, db: Database, body: string) {
+export function handleAttack(db: Database, body: string) {
   try {
     // console.log(`handleAttack: ws.id:${ws.connectionId}, body:${body}`);
     const req: AttackRequestData = JSON.parse(body);
@@ -101,8 +101,8 @@ export function handleAttack(ws: WebSocketWithId, db: Database, body: string) {
     // console.log(`handleAttack: gameId:${game?.idGame}`);
     const res: AttackResponseData | undefined= game?.attack(req);
     // console.log(`handleAttack: response:${JSON.stringify(res)}`);
-    if (res) {
-      sendAttackResponse(ws, res);
+    if (res && game) {
+      sendAttackResponse(game, res);
     }
   } catch (error) {
     console.error(error);

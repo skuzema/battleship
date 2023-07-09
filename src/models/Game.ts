@@ -7,6 +7,7 @@ import {
   AttackStatus,
   AttackResponseData,
 } from './types';
+import { sendAttackResponse } from '../commands/messageSender';
 
 export class Game {
   private _gameId: number;
@@ -18,6 +19,7 @@ export class Game {
   constructor(gameId: number, room: Room) {
     this._gameId = gameId;
     this._room = room;
+    this._turn = room.players[0].index;
   }
 
   public get idGame() {
@@ -97,13 +99,30 @@ export class Game {
           )
             ? AttackStatus.Killed
             : AttackStatus.Shot;
+          console.log(
+            `1. markSurroundingCells attackResult === AttackStatus.Killed ${
+              attackResult === AttackStatus.Killed
+            }`,
+          );
+          if (attackResult === AttackStatus.Killed) {
+            console.log(`2. ship !== undefined ${ship !== undefined}`);
+            if (ship !== undefined) {
+              const shipCells = this.getShipCells(ship);
+              this.markSurroundingCells(
+                enemyPlayerField.field,
+                shipCells,
+                CellStatus.Miss,
+                indexPlayer,
+              );
+            }
+          }
           return this.createAttackResponseData(x, y, indexPlayer, attackResult);
         }
       }
     }
   }
 
-  private isShipKilled(playerField: Field, ship: Ship|undefined): boolean {
+  private isShipKilled(playerField: Field, ship: Ship | undefined): boolean {
     if (playerField !== undefined && ship !== undefined) {
       const shipCells = this.getShipCells(ship);
       const shipShotCells = shipCells.filter(
@@ -154,6 +173,47 @@ export class Game {
       }
     }
     return cells;
+  }
+
+  private markSurroundingCells(
+    field: CellStatus[][],
+    shipCells: { x: number; y: number }[],
+    status: CellStatus,
+    indexPlayer: number,
+  ) {
+    shipCells.forEach((cell) => {
+      const { x, y } = cell;
+      this.markCell(field, x - 1, y - 1, status, indexPlayer);
+      this.markCell(field, x, y - 1, status, indexPlayer);
+      this.markCell(field, x + 1, y - 1, status, indexPlayer);
+      this.markCell(field, x - 1, y, status, indexPlayer);
+      this.markCell(field, x + 1, y, status, indexPlayer);
+      this.markCell(field, x - 1, y + 1, status, indexPlayer);
+      this.markCell(field, x, y + 1, status, indexPlayer);
+      this.markCell(field, x + 1, y + 1, status, indexPlayer);
+    });
+  }
+
+  private markCell(
+    field: CellStatus[][],
+    x: number,
+    y: number,
+    status: CellStatus,
+    indexPlayer: number,
+  ) {
+    if (x >= 0 && x < field.length && y >= 0 && y < field.length) {
+      if (field[y][x] === CellStatus.Empty) {
+        field[y][x] = status;
+        const attackResponse = this.createAttackResponseData(
+          x,
+          y,
+          indexPlayer,
+          AttackStatus.Miss,
+        );
+        console.log(`3. sendAttackResponse ${JSON.stringify(attackResponse)}`);
+        sendAttackResponse(this, attackResponse);
+      }
+    }
   }
 
   private createAttackResponseData(

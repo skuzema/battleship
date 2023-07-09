@@ -33,7 +33,7 @@ export function handleCommands(
         handleAddShips(ws, db, command.data);
         break;
       case 'attack':
-        handleAttack(ws, db, command.data);
+        handleAttack(db, command.data);
         break;
       case 'randomAttack':
         // handleRandomAttack(ws, command.data);

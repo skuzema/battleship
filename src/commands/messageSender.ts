@@ -102,13 +102,12 @@ export function sendStartGame(game: Game) {
   sendTurn(game);
 }
 
-export function sendTurn(game: Game, playerId?: number) {
-  const turnPlayerId = playerId ? playerId : game.room.players[0]?.index;
-  console.log(`sendTurn playerId: ${turnPlayerId}`);
+export function sendTurn(game: Game) {
+  console.log(`sendTurn playerId: ${game.turn}`);
   const res: BaseResponseType = {
     type: 'turn',
     data: JSON.stringify({
-      currentPlayer: turnPlayerId,
+      currentPlayer: game.turn,
     }),
     id: 0,
   };
@@ -121,7 +120,7 @@ export function sendTurn(game: Game, playerId?: number) {
 }
 
 export function sendAttackResponse(
-  ws: WebSocketWithId,
+  game: Game,
   attackResponse: AttackResponseData | undefined,
 ) {
   if (attackResponse) {
@@ -132,12 +131,15 @@ export function sendAttackResponse(
       }),
       id: 0,
     };
-    console.log(
-      `sendAttackResponse socket: ${ws.connectionId}, data: ${JSON.stringify(
-        res,
-      )}`,
-    );
-    ws.send(JSON.stringify(res));
+    game.room.players.forEach(function (value) {
+      // console.log(
+      //   `sendAttackResponse socket: ${
+      //     value.ws.connectionId
+      //   }, data: ${JSON.stringify(res)}`,
+      // );
+      value.ws.send(JSON.stringify(res));
+    });
+    sendTurn(game);
   }
 }
 
