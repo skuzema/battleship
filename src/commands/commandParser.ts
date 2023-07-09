@@ -41,6 +41,5 @@ export function handleCommands(
     }
   } catch (error) {
     console.error('Error parsing command:', error);
-    return null;
   }
 }

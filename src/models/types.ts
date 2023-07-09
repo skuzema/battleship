@@ -71,31 +71,16 @@ export interface StartGameResponseData {
   currentPlayerIndex: number;
 }
 
+export enum CellStatus {
+  Empty,
+  Ship,
+  Shot,
+  Miss,
+  Killed
+}
+
+
 export type Command = BaseCommandType<string>;
 export type RegRequestType = BaseCommandType<RegRequestData>;
 export type RegResponseType = BaseCommandType<RegResponseData>;
 export type BaseResponseType = BaseCommandType<string>;
-
-//  Class interfaces
-
-export interface Player {
-  ws: WebSocketWithId;
-  index: number;
-  name: string;
-  password: string;
-}
-
-export interface Room {
-  id: number;
-  name: string;
-  players: Player[];
-}
-
-// export interface Ship {
-//   id: number;
-//   type: string;
-//   position: {
-//     x: number;
-//     y: number;
-//   };
-// }

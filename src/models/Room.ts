@@ -1,4 +1,4 @@
-import { Player } from '../models/types';
+import { Player } from '../models/Player';
 
 export class Room {
   private _roomId: number;

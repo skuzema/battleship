@@ -1,10 +1,13 @@
 import { Room } from './Room';
+import { Field } from './Field';
 import { Ship } from './types';
 
 export class Game {
   private _gameId: number;
   private _room: Room;
+  private _turn: number;
   private _ships = new Map<number, Ship[]>();
+  private _fields = new Map<number, Field>();
 
   constructor(gameId: number, room: Room) {
     this._gameId = gameId;
@@ -17,6 +20,10 @@ export class Game {
 
   public get room() {
     return this._room;
+  }
+
+  public get turn() {
+    return this._turn;
   }
 
   public getShips(playerId: number): Ship[] {
@@ -37,12 +44,9 @@ export class Game {
     return this._ships;
   }
 
-  // public getIdPlayer(currentId: number) {
-  //   for (let i = 0; i < this._room.players.length; i++) {
-  //     if (this._room.players[i]?.index !== currentId) {
-  //       return this._room.players[i]?.index;
-  //     }
-  //   }
-  //   return currentId;
-  // }
+  public addFields(playerId: number, ships: Ship[]): Map<number, Field> {
+    const field = new Field(ships);
+    this._fields.set(playerId, field);
+    return this._fields;
+  }
 }
