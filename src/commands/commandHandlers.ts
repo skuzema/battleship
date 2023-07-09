@@ -7,6 +7,7 @@ import {
   Ship,
   AttackRequestData,
   AttackResponseData,
+  RandomAttackRequestData,
 } from '../models/types';
 import {
   sendRegResponse,
@@ -103,6 +104,25 @@ export function handleAttack(db: Database, body: string) {
     }
     // console.log(`handleAttack: gameId:${game?.idGame}`);
     const res: AttackResponseData | undefined = game?.attack(req);
+    // console.log(`handleAttack: response:${JSON.stringify(res)}`);
+    if (res && game) {
+      sendAttackResponse(game, res);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export function handleRandomAttack(db: Database, body: string) {
+  try {
+    console.log(`handleRandomAttack: body:${body}`);
+    const req: RandomAttackRequestData = JSON.parse(body);
+    const game = db.getGameById(req.gameId);
+    if (!game || (game && game.turn !== req.indexPlayer)) {
+      return;
+    }
+    // console.log(`handleAttack: gameId:${game?.idGame}`);
+    const res: AttackResponseData | undefined = game?.randomAttack(req);
     // console.log(`handleAttack: response:${JSON.stringify(res)}`);
     if (res && game) {
       sendAttackResponse(game, res);

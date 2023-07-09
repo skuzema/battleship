@@ -6,6 +6,7 @@ import {
   CellStatus,
   AttackStatus,
   AttackResponseData,
+  RandomAttackRequestData,
 } from './types';
 import { sendAttackResponse } from '../commands/messageSender';
 
@@ -216,6 +217,98 @@ export class Game {
         sendAttackResponse(this, attackResponse);
       }
     }
+  }
+
+  public randomAttack(
+    randomAttackObj: RandomAttackRequestData,
+  ): AttackResponseData | undefined {
+    const { indexPlayer } = randomAttackObj;
+    const enemyPlayerId = this.getEnemyPlayerId(indexPlayer);
+
+    if (enemyPlayerId !== undefined) {
+      const enemyPlayerField = this.getFields(enemyPlayerId);
+      if (enemyPlayerField !== undefined) {
+        const emptyOrShipCells = this.getEmptyOrShipCells(enemyPlayerField);
+        const randomCell = this.getRandomCell(emptyOrShipCells);
+
+        if (randomCell === undefined) {
+          return undefined; // No valid cells available for attack
+        }
+
+        const { x, y } = randomCell;
+        const targetCellStatus = enemyPlayerField.field[y][x];
+
+        if (
+          targetCellStatus === CellStatus.Empty ||
+          targetCellStatus === CellStatus.Miss
+        ) {
+          enemyPlayerField.field[y][x] = CellStatus.Miss;
+          this._turn = enemyPlayerId;
+          return this.createAttackResponseData(
+            x,
+            y,
+            indexPlayer,
+            AttackStatus.Miss,
+          );
+        } else {
+          enemyPlayerField.field[y][x] = CellStatus.Shot;
+          const ship = this.getShipByCell(enemyPlayerId, { x, y });
+          const attackResult: AttackStatus = this.isShipKilled(
+            enemyPlayerField,
+            ship,
+          )
+            ? AttackStatus.Killed
+            : AttackStatus.Shot;
+
+          if (attackResult === AttackStatus.Killed) {
+            if (ship !== undefined) {
+              const shipCells = this.getShipCells(ship);
+              this.markSurroundingCells(
+                enemyPlayerField.field,
+                shipCells,
+                CellStatus.Miss,
+                indexPlayer,
+              );
+            }
+          }
+          this._turn = indexPlayer;
+          return this.createAttackResponseData(x, y, indexPlayer, attackResult);
+        }
+      }
+    }
+  }
+
+  private getEmptyOrShipCells(field: Field): { x: number; y: number }[] {
+    const emptyOrShipCells: { x: number; y: number }[] = [];
+
+    for (let x = 0; x < 10; x++) {
+      for (let y = 0; y < 10; y++) {
+        const cellStatus = field.field[y][x];
+
+        if (
+          cellStatus === CellStatus.Empty ||
+          cellStatus === CellStatus.Small ||
+          cellStatus === CellStatus.Medium ||
+          cellStatus === CellStatus.Large ||
+          cellStatus === CellStatus.Huge
+        ) {
+          emptyOrShipCells.push({ x, y });
+        }
+      }
+    }
+
+    return emptyOrShipCells;
+  }
+
+  private getRandomCell(
+    cells: { x: number; y: number }[],
+  ): { x: number; y: number } | undefined {
+    if (cells.length === 0) {
+      return undefined;
+    }
+
+    const randomIndex = Math.floor(Math.random() * cells.length);
+    return cells[randomIndex];
   }
 
   private createAttackResponseData(
