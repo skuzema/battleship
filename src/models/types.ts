@@ -112,6 +112,11 @@ export interface FinishGameResponseData {
   winPlayer: number;
 }
 
+export interface Winners {
+  name: string;
+  wins: number;
+}
+
 export type Command = BaseCommandType<string>;
 export type RegRequestType = BaseCommandType<RegRequestData>;
 export type RegResponseType = BaseCommandType<RegResponseData>;

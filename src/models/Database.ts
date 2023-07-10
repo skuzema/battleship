@@ -1,7 +1,12 @@
-import { WebSocketWithId, RegResponseData } from '../models/types';
+import { WebSocketWithId, RegResponseData, Winners } from '../models/types';
 import { Player } from './Player';
 import { Room } from './Room';
 import { Game } from './Game';
+import {
+  sendFinishGame,
+  sendUpdateWinners,
+  sendUpdateRoomState,
+} from '../commands/messageSender';
 
 export class Database {
   private players = new Map<number, Player>();
@@ -57,6 +62,20 @@ export class Database {
     this.players.forEach(function (value) {
       res.push(value);
     });
+    return res;
+  }
+
+  public getWinners(): Winners[] {
+    const res: Winners[] = [];
+    this.players.forEach(function (value) {
+      if (value.wins > 0) {
+        res.push({
+          name: value.name,
+          wins: value.wins,
+        });
+      }
+    });
+    res.sort((a, b) => b.wins - a.wins);
     return res;
   }
 
@@ -156,5 +175,111 @@ export class Database {
   // Game methods
   public getGameById(gameId: number): Game | undefined {
     return this.games.get(gameId);
+  }
+
+  // Additional Database methods
+  public deletePlayer(playerId: number): boolean {
+    if (this.players.delete(playerId)) {
+      return true;
+    }
+    return false;
+  }
+
+  public deleteRoom(roomId: number): boolean {
+    console.log(`deleteRoom 1:`);
+    if (this.rooms.delete(roomId)) {
+      console.log(`deleteRoom Ok!`);
+      return true;
+    }
+    return false;
+  }
+
+  public deleteGame(gameId: number): boolean {
+    console.log(`deleteGame 1:`);
+    if (this.games.delete(gameId)) {
+      console.log(`deleteGame Ok!`);
+      return true;
+    }
+    return false;
+  }
+
+  public findUserInGame(playerId: number): Game | undefined {
+    let returnObject: Game | undefined = undefined;
+    let isFound = false;
+    console.log(`findUserInGame 1.`);
+    this.games.forEach(function (value) {
+      console.log(`findUserInGame 2.`);
+      value.room.players.forEach(function (value1) {
+        console.log(
+          `findUserInGame 3. value1.index === playerId ${
+            value1.index === playerId
+          }`,
+        );
+        if (value1.index === playerId) {
+          console.log(`findUserInGame 4. ${value1.index}`);
+          isFound = true;
+        }
+      });
+      if (isFound) {
+        console.log(`findUserInGame 3a. ${value}`);
+        returnObject = value;
+      }
+    });
+    console.log(`findUserInGame 1a  ${returnObject}`);
+    return returnObject;
+  }
+
+  public findUserInRoom(playerId: number): Room | undefined {
+    let returnObject: Room | undefined = undefined;
+    let isFound = false;
+    console.log(`findUserInRoom 1.`);
+    this.rooms.forEach(function (value) {
+      console.log(`findUserInRoom 2.`);
+      value.players.forEach(function (value1) {
+        console.log(
+          `findUserInRoom 3. value1.index === playerId ${
+            value1.index === playerId
+          }`,
+        );
+        if (value1.index === playerId) {
+          console.log(`findUserInRoom 4. ${value1.index}`);
+          isFound = true;
+        }
+      });
+      if (isFound) {
+        console.log(`findUserInRoom 3a. ${value}`);
+        returnObject = value;
+      }
+    });
+    console.log(`findUserInRoom 1a  ${returnObject}`);
+    return returnObject;
+  }
+
+  public disconnectPlayer(playerId: number): void {
+    const player = this.players.get(playerId);
+    console.log(`disconnectPlayer 1. player: ${player}`);
+    if (player) {
+      const room = this.findUserInRoom(playerId);
+      console.log(`disconnectPlayer 2. room: ${room}`);
+      if (room) {
+        const game = this.findUserInGame(playerId);
+        console.log(`disconnectPlayer 3. game: ${game}`);
+        if (game) {
+          const enemyPlayerId = game.getEnemyPlayerId(playerId);
+          if (enemyPlayerId) {
+            game.finishGameIfDisconnected(enemyPlayerId);
+            sendFinishGame(game, enemyPlayerId);
+            sendUpdateWinners(this);
+            this.deleteRoom(room.id);
+            this.deleteGame(game.id);
+          }
+        } else {
+          // room.removePlayerById(playerId);
+          this.deleteRoom(room.id);
+          sendUpdateRoomState(this);
+        }
+      }
+    }
+    this.deletePlayer(playerId);
   }
 }

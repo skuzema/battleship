@@ -72,7 +72,7 @@ export function sendCreateGame(game: Game) {
   };
   game.room.players.forEach(function (value) {
     res.data = JSON.stringify({
-      idGame: game.idGame,
+      idGame: game.id,
       idPlayer: value.index,
     });
     // console.log(
@@ -83,7 +83,7 @@ export function sendCreateGame(game: Game) {
 }
 
 export function sendStartGame(game: Game) {
-  console.log(`sendStartGame : ${game.idGame}`);
+  console.log(`sendStartGame : ${game.id}`);
   const res: BaseResponseType = {
     type: 'start_game',
     data: '',
@@ -120,6 +120,45 @@ export function sendTurn(game: Game) {
 }
 
 export function sendAttackResponse(
+  db: Database,
+  game: Game,
+  attackResponse: AttackResponseData | undefined,
+) {
+  if (attackResponse) {
+    const res: BaseResponseType = {
+      type: 'attack',
+      data: JSON.stringify({
+        ...attackResponse,
+      }),
+      id: 0,
+    };
+    let finishGame = false;
+    game.room.players.forEach(function (value) {
+      // console.log(
+      //   `sendAttackResponse socket: ${
+      //     value.ws.connectionId
+      //   }, data: ${JSON.stringify(res)}`,
+      // );
+      value.ws.send(JSON.stringify(res));
+      if (game.finishGame(value.index)) {
+        finishGame = true;
+        sendFinishGame(game, value.index);
+      }
+    });
+    if (finishGame) {
+      const room = db.findUserInRoom(game.turn);
+      sendUpdateWinners(db);
+      if (room) {
+        db.deleteRoom(room.id);
+      }
+      db.deleteGame(game.id);
+      return;
+    }
+    sendTurn(game);
+  }
+}
+
+export function sendMissAroundShip(
   game: Game,
   attackResponse: AttackResponseData | undefined,
 ) {
@@ -133,14 +172,11 @@ export function sendAttackResponse(
     };
     game.room.players.forEach(function (value) {
       // console.log(
-      //   `sendAttackResponse socket: ${
+      //   `sendMissAroundShip socket: ${
       //     value.ws.connectionId
       //   }, data: ${JSON.stringify(res)}`,
       // );
       value.ws.send(JSON.stringify(res));
-      if(game.checkWinner(value.index)) {
-        sendFinishGame(game, value.index);
-      }
     });
     sendTurn(game);
   }
@@ -156,12 +192,27 @@ export function sendFinishGame(game: Game, playerId: number) {
     id: 0,
   };
   game.room.players.forEach(function (value) {
-    // console.log(
-    //   `sendAttackResponse socket: ${
-    //     value.ws.connectionId
-    //   }, data: ${JSON.stringify(res)}`,
-    // );
+    console.log(
+      `sendFinishGame socket: ${value.ws.connectionId}, data: ${JSON.stringify(
+        res,
+      )}`,
+    );
     value.ws.send(JSON.stringify(res));
   });
-  sendTurn(game);
+}
+
+export function sendUpdateWinners(db: Database) {
+  console.log(`sendUpdateWinners`);
+  const res: BaseResponseType = {
+    type: 'update_winners',
+    data: JSON.stringify(db.getWinners()),
+    id: 0,
+  };
+  const players = db.getPlayers();
+  players.forEach(function (value) {
+    console.log(
+      `sendUpdateWinners ${value.ws.connectionId}: ${JSON.stringify(res)}`,
+    );
+    value.ws.send(JSON.stringify(res));
+  });
 }

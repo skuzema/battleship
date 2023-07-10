@@ -5,6 +5,7 @@ export class Player {
   private _index: number;
   private _name: string;
   private _password: string;
+  private _wins: number;
 
   constructor(
     ws: WebSocketWithId,
@@ -16,6 +17,7 @@ export class Player {
     this._index = index;
     this._name = name;
     this._password = password;
+    this._wins = 0;
   }
 
   public get ws() {
@@ -32,5 +34,14 @@ export class Player {
 
   public get password() {
     return this._password;
+  }
+
+  public addWins() {
+    this._wins++;
+    console.log(`Wins: user ${this._index}, wins: ${this._index}`);
+  }
+
+  public get wins() {
+    return this._wins;
   }
 }

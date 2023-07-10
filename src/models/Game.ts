@@ -8,7 +8,7 @@ import {
   AttackResponseData,
   RandomAttackRequestData,
 } from './types';
-import { sendAttackResponse } from '../commands/messageSender';
+import { sendMissAroundShip } from '../commands/messageSender';
 
 export class Game {
   private _gameId: number;
@@ -23,7 +23,7 @@ export class Game {
     this._turn = room.players[0].index;
   }
 
-  public get idGame() {
+  public get id() {
     return this._gameId;
   }
 
@@ -59,8 +59,14 @@ export class Game {
     return this._fields;
   }
 
-  private getFields(playerId: number): Field | undefined {
+  public getFields(playerId: number): Field | undefined {
     return this._fields.get(playerId);
+  }
+
+  public getPlayerId(playerId: number): number | undefined {
+    const playerIds = this._room.players.map((player) => player.index);
+    const currentPlayerId = playerIds.find((id) => id == playerId);
+    return currentPlayerId;
   }
 
   public getEnemyPlayerId(playerId: number): number | undefined {
@@ -213,8 +219,8 @@ export class Game {
           indexPlayer,
           AttackStatus.Miss,
         );
-        console.log(`3. sendAttackResponse ${JSON.stringify(attackResponse)}`);
-        sendAttackResponse(this, attackResponse);
+        console.log(`3. sendMissAroundShip ${JSON.stringify(attackResponse)}`);
+        sendMissAroundShip(this, attackResponse);
       }
     }
   }
@@ -278,7 +284,7 @@ export class Game {
     }
   }
 
-  public checkWinner(currentPlayerId: number): boolean {
+  public finishGame(currentPlayerId: number): boolean {
     const enemyPlayerId = this.getEnemyPlayerId(currentPlayerId);
     if (enemyPlayerId !== undefined) {
       const enemyPlayerField = this.getFields(enemyPlayerId);
@@ -296,12 +302,29 @@ export class Game {
             }
           }
         }
+        const currentPlayer = this._room.players.find(
+          (player) => player.index === currentPlayerId,
+        );
+        currentPlayer?.addWins();
         return true;
       }
     }
     return false;
   }
 
+  public finishGameIfDisconnected(playerId: number): boolean {
+    console.log(`finishGameIfDisconnected 1`);
+    const player = this._room.players.find(
+      (player) => player.index === playerId,
+    );
+    if (player) {
+      player?.addWins();
+      console.log(`finishGameIfDisconnected 2`);
+      return true;
+    } else {
+      return false;
+    }
+  }
   private getEmptyOrShipCells(field: Field): { x: number; y: number }[] {
     const emptyOrShipCells: { x: number; y: number }[] = [];
 

@@ -8,6 +8,7 @@ import {
   handleAttack,
   handleRandomAttack,
 } from '../commands/commandHandlers';
+import { sendUpdateWinners } from '../commands/messageSender';
 
 export function handleCommands(
   ws: WebSocketWithId,
@@ -23,9 +24,11 @@ export function handleCommands(
     switch (command.type) {
       case 'reg':
         handleRegistration(ws, db, command.data);
+        sendUpdateWinners(db);
         break;
       case 'create_room':
         handleCreateRoom(ws, db);
+        sendUpdateWinners(db);
         break;
       case 'add_user_to_room':
         handleAddUserToRoom(ws, db, command.data);

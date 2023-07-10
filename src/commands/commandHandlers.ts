@@ -106,7 +106,7 @@ export function handleAttack(db: Database, body: string) {
     const res: AttackResponseData | undefined = game?.attack(req);
     // console.log(`handleAttack: response:${JSON.stringify(res)}`);
     if (res && game) {
-      sendAttackResponse(game, res);
+      sendAttackResponse(db, game, res);
     }
   } catch (error) {
     console.error(error);
@@ -125,7 +125,7 @@ export function handleRandomAttack(db: Database, body: string) {
     const res: AttackResponseData | undefined = game?.randomAttack(req);
     // console.log(`handleAttack: response:${JSON.stringify(res)}`);
     if (res && game) {
-      sendAttackResponse(game, res);
+      sendAttackResponse(db, game, res);
     }
   } catch (error) {
     console.error(error);

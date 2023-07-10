@@ -32,6 +32,7 @@ export const wsServer = (port: number, db: Database): WebSocketServer => {
     });
 
     ws.on('close', () => {
+      db.disconnectPlayer(ws.connectionId);
       console.log(
         `Player ${ws.connectionId} has been disconnected from server.`,
       );
