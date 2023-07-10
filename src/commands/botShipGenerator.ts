@@ -1,139 +1,121 @@
 import { Ship, ShipType } from '../models/types';
 
+function randomDirection(): boolean {
+  return Math.random() < 0.5; 
+}
+
+function getRandomPosition(): { x: number; y: number } {
+  return {
+    x: Math.floor(Math.random() * 10),
+    y: Math.floor(Math.random() * 10),
+  };
+}
+
+function isCellEmpty(field: number[][], x: number, y: number): boolean {
+  return (
+    x >= 0 &&
+    x < field.length &&
+    y >= 0 &&
+    y < field.length &&
+    field[y][x] === 0
+  );
+}
+
 export function randomShips(): Ship[] {
-  const battleFieldSize = 10;
   const ships: Ship[] = [];
+  const shipTypes: ShipType[] = [
+    ShipType.huge,
+    ShipType.large,
+    ShipType.large,
+    ShipType.medium,
+    ShipType.medium,
+    ShipType.medium,
+    ShipType.small,
+    ShipType.small,
+    ShipType.small,
+    ShipType.small,
+  ];
 
-  // Function to check if a ship can be placed at the specified position
-  const canPlaceShip = (
-    x: number,
-    y: number,
-    length: number,
-    direction: boolean,
-  ): boolean => {
-    // Check if the ship goes out of bounds
-    if (
-      (direction && x + length > battleFieldSize) ||
-      (!direction && y + length > battleFieldSize)
-    ) {
-      return false;
-    }
+  const field: number[][] = Array.from({ length: 10 }, () =>
+    Array.from({ length: 10 }, () => 0),
+  );
 
-    // Check if the ship overlaps with any existing ships or is adjacent to them
-    for (const ship of ships) {
+  for (let i = 0; i < shipTypes.length; i++) {
+    const type = shipTypes[i];
+    const length = getShipLength(type);
+    const direction = randomDirection();
+
+    let position = getRandomPosition();
+    let validPosition = false;
+
+    while (!validPosition) {
+      validPosition = true;
+
+      // Check if the ship touches any existing ship or goes out of bounds
       if (direction) {
-        // Check horizontal placement
-        if (
-          y === ship.position.y &&
-          x <= ship.position.x + ship.length &&
-          x + length >= ship.position.x
-        ) {
-          return false;
-        }
-        // Check adjacency
-        if (
-          Math.abs(ship.position.y - y) <= 1 &&
-          x <= ship.position.x + ship.length &&
-          x + length >= ship.position.x - 1
-        ) {
-          return false;
+        for (let j = -1; j <= length; j++) {
+          if (
+            !isCellEmpty(field, position.x, position.y + j) ||
+            !isCellEmpty(field, position.x - 1, position.y + j) ||
+            !isCellEmpty(field, position.x + 1, position.y + j)
+          ) {
+            validPosition = false;
+            break;
+          }
         }
       } else {
-        // Check vertical placement
-        if (
-          x === ship.position.x &&
-          y <= ship.position.y + ship.length &&
-          y + length >= ship.position.y
-        ) {
-          return false;
+        for (let j = -1; j <= length; j++) {
+          if (
+            !isCellEmpty(field, position.x + j, position.y) ||
+            !isCellEmpty(field, position.x + j, position.y - 1) ||
+            !isCellEmpty(field, position.x + j, position.y + 1)
+          ) {
+            validPosition = false;
+            break;
+          }
         }
-        // Check adjacency
-        if (
-          Math.abs(ship.position.x - x) <= 1 &&
-          y <= ship.position.y + ship.length &&
-          y + length >= ship.position.y - 1
-        ) {
-          return false;
-        }
+      }
+
+      if (!validPosition) {
+        position = getRandomPosition();
       }
     }
 
-    return true;
-  };
+    // Mark the cells occupied by the ship
+    if (direction) {
+      for (let j = 0; j < length; j++) {
+        field[position.y + j][position.x] = 1;
+      }
+    } else {
+      for (let j = 0; j < length; j++) {
+        field[position.y][position.x + j] = 1;
+      }
+    }
 
-  // Function to place a ship at the specified position
-  const placeShip = (
-    x: number,
-    y: number,
-    length: number,
-    direction: boolean,
-    type: ShipType,
-  ): void => {
-    ships.push({
-      position: { x, y },
+    const ship: Ship = {
+      position,
       direction,
       length,
       type,
-    });
-  };
+    };
 
-  // Place the "huge" ship (1x4)
-  let x = getRandomNumber(battleFieldSize);
-  let y = getRandomNumber(battleFieldSize);
-  let direction = getRandomDirection();
-  while (!canPlaceShip(x, y, 4, direction)) {
-    x = getRandomNumber(battleFieldSize);
-    y = getRandomNumber(battleFieldSize);
-    direction = getRandomDirection();
-  }
-  placeShip(x, y, 4, direction, ShipType.huge);
-
-  // Place the "large" ships (1x3)
-  for (let i = 0; i < 2; i++) {
-    x = getRandomNumber(battleFieldSize);
-    y = getRandomNumber(battleFieldSize);
-    direction = getRandomDirection();
-    while (!canPlaceShip(x, y, 3, direction)) {
-      x = getRandomNumber(battleFieldSize);
-      y = getRandomNumber(battleFieldSize);
-      direction = getRandomDirection();
-    }
-    placeShip(x, y, 3, direction, ShipType.large);
-  }
-
-  // Place the "medium" ships (1x2)
-  for (let i = 0; i < 3; i++) {
-    x = getRandomNumber(battleFieldSize);
-    y = getRandomNumber(battleFieldSize);
-    direction = getRandomDirection();
-    while (!canPlaceShip(x, y, 2, direction)) {
-      x = getRandomNumber(battleFieldSize);
-      y = getRandomNumber(battleFieldSize);
-      direction = getRandomDirection();
-    }
-    placeShip(x, y, 2, direction, ShipType.medium);
-  }
-
-  // Place the "small" ships (1x2)
-  for (let i = 0; i < 4; i++) {
-    x = getRandomNumber(battleFieldSize);
-    y = getRandomNumber(battleFieldSize);
-    direction = getRandomDirection();
-    while (!canPlaceShip(x, y, 1, direction)) {
-      x = getRandomNumber(battleFieldSize);
-      y = getRandomNumber(battleFieldSize);
-      direction = getRandomDirection();
-    }
-    placeShip(x, y, 1, direction, ShipType.small);
+    ships.push(ship);
   }
 
   return ships;
 }
 
-function getRandomNumber(max: number): number {
-  return Math.floor(Math.random() * max);
-}
-
-function getRandomDirection(): boolean {
-  return Math.random() < 0.5;
+function getShipLength(type: ShipType): number {
+  switch (type) {
+    case ShipType.huge:
+      return 4;
+    case ShipType.large:
+      return 3;
+    case ShipType.medium:
+      return 2;
+    case ShipType.small:
+      return 1;
+    default:
+      return 0;
+  }
 }
