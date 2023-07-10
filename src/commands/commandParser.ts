@@ -7,6 +7,7 @@ import {
   handleAddShips,
   handleAttack,
   handleRandomAttack,
+  handleSinglePlay,
 } from '../commands/commandHandlers';
 import { sendUpdateWinners } from '../commands/messageSender';
 
@@ -41,6 +42,9 @@ export function handleCommands(
         break;
       case 'randomAttack':
         handleRandomAttack(db, command.data);
+        break;
+      case 'single_play':
+        handleSinglePlay(ws, db, command.data);
         break;
       default:
     }

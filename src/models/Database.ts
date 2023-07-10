@@ -2,6 +2,8 @@ import { WebSocketWithId, RegResponseData, Winners } from '../models/types';
 import { Player } from './Player';
 import { Room } from './Room';
 import { Game } from './Game';
+import { Bot } from './Bot';
+
 import {
   sendFinishGame,
   sendUpdateWinners,
@@ -12,10 +14,12 @@ export class Database {
   private players = new Map<number, Player>();
   private rooms = new Map<number, Room>();
   private games = new Map<number, Game>();
+  private bots = new Map<number, Bot>();
 
   private nextPlayerId = 0;
-  private nextRoomId = 0;
-  private nextGameId = 0;
+  public nextRoomId = 0;
+  public nextGameId = 0;
+  public nextBotId = 0;
 
   // Player methods
   public createPlayer(
@@ -55,6 +59,12 @@ export class Database {
       );
       return validationError;
     }
+  }
+
+  public createBot(db: Database, playerId: number) {
+    const bot: Bot = new Bot(db, playerId);
+    this.bots.set(playerId, bot);
+    bot.initBot();
   }
 
   public getPlayers(): Player[] {

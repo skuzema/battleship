@@ -139,3 +139,18 @@ export function handleRandomAttack(db: Database, body: string) {
     console.error(error);
   }
 }
+
+export function handleSinglePlay(
+  ws: WebSocketWithId,
+  db: Database,
+  body: string,
+) {
+  try {
+    console.log(
+      `handleSinglePlay: body:${body} db:${db}, ws:${ws.connectionId}`,
+    );
+    db.createBot(db, ws.connectionId);
+  } catch (error) {
+    console.error(error);
+  }
+}
