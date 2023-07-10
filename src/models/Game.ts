@@ -8,7 +8,7 @@ import {
   AttackResponseData,
   RandomAttackRequestData,
 } from './types';
-import { sendMissAroundShip } from '../commands/messageSender';
+import { sendMissAroundShip as sendStatusAroundShip } from '../commands/messageSender';
 
 export class Game {
   private _gameId: number;
@@ -119,7 +119,6 @@ export class Game {
               this.markSurroundingCells(
                 enemyPlayerField.field,
                 shipCells,
-                CellStatus.Miss,
                 indexPlayer,
               );
             }
@@ -187,19 +186,22 @@ export class Game {
   private markSurroundingCells(
     field: CellStatus[][],
     shipCells: { x: number; y: number }[],
-    status: CellStatus,
     indexPlayer: number,
   ) {
     shipCells.forEach((cell) => {
       const { x, y } = cell;
-      this.markCell(field, x - 1, y - 1, status, indexPlayer);
-      this.markCell(field, x, y - 1, status, indexPlayer);
-      this.markCell(field, x + 1, y - 1, status, indexPlayer);
-      this.markCell(field, x - 1, y, status, indexPlayer);
-      this.markCell(field, x + 1, y, status, indexPlayer);
-      this.markCell(field, x - 1, y + 1, status, indexPlayer);
-      this.markCell(field, x, y + 1, status, indexPlayer);
-      this.markCell(field, x + 1, y + 1, status, indexPlayer);
+      this.markCell(field, x - 1, y - 1, indexPlayer);
+      this.markCell(field, x, y - 1, indexPlayer);
+      this.markCell(field, x + 1, y - 1, indexPlayer);
+      this.markCell(field, x - 1, y, indexPlayer);
+      this.markCell(field, x + 1, y, indexPlayer);
+      this.markCell(field, x - 1, y + 1, indexPlayer);
+      this.markCell(field, x, y + 1, indexPlayer);
+      this.markCell(field, x + 1, y + 1, indexPlayer);
+    });
+    shipCells.forEach((cell) => {
+      const { x, y } = cell;
+      this.markCell(field, x, y, indexPlayer);
     });
   }
 
@@ -207,12 +209,10 @@ export class Game {
     field: CellStatus[][],
     x: number,
     y: number,
-    status: CellStatus,
     indexPlayer: number,
   ) {
     if (x >= 0 && x < field.length && y >= 0 && y < field.length) {
       if (field[y][x] === CellStatus.Empty) {
-        field[y][x] = status;
         const attackResponse = this.createAttackResponseData(
           x,
           y,
@@ -220,7 +220,16 @@ export class Game {
           AttackStatus.Miss,
         );
         console.log(`3. sendMissAroundShip ${JSON.stringify(attackResponse)}`);
-        sendMissAroundShip(this, attackResponse);
+        sendStatusAroundShip(this, attackResponse);
+      } else if (field[y][x] === CellStatus.Shot) {
+        const attackResponse = this.createAttackResponseData(
+          x,
+          y,
+          indexPlayer,
+          AttackStatus.Killed,
+        );
+        console.log(`4. sendKillAroundShip ${JSON.stringify(attackResponse)}`);
+        sendStatusAroundShip(this, attackResponse);
       }
     }
   }
@@ -272,7 +281,6 @@ export class Game {
               this.markSurroundingCells(
                 enemyPlayerField.field,
                 shipCells,
-                CellStatus.Miss,
                 indexPlayer,
               );
             }
