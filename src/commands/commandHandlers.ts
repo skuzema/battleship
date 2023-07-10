@@ -18,7 +18,7 @@ import {
 } from './messageSender';
 import { Database } from '../models/Database';
 import { Game } from 'models/Game';
-import { Field } from 'models/Field';
+// import { Field } from 'models/Field';
 
 export function handleRegistration(
   ws: WebSocketWithId,
@@ -85,16 +85,18 @@ export function handleAddShips(
       req.indexPlayer,
       req.ships,
     );
-    const fields: Map<number, Field> | undefined = game?.addFields(
-      req.indexPlayer,
-      req.ships,
-    );
-    console.log(
-      `handleAddShips 4: game:${game}, ships?.size === 2:${
-        ships?.size === 2
-      },fields?.size === 2: ${fields?.size === 2}`,
-    );
-    if (game && ships?.size === 2 && fields?.size === 2) {
+    console.log(`handleAddShips: 4: after add ships`);
+    // const fields: Map<number, Field> | undefined = game?.addFields(
+    //   req.indexPlayer,
+    //   req.ships,
+    // );
+    // console.log(
+    //   `handleAddShips 5: game:${game !== undefined}, ships?.size === 2:${
+    //     ships?.size === 2
+    //   },fields?.size === 2: ${fields?.size === 2}`,
+    // );
+    // if (game && ships?.size === 2 && fields?.size === 2) {
+    if (game && ships?.size === 2) {
       sendStartGame(game);
     }
   } catch (error) {

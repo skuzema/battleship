@@ -6,6 +6,7 @@ import { handleCommands } from '../commands/botCommandParser';
 export class Bot {
   private _ws: WebSocket;
   private _id: number;
+  private _gameId: number;
   private _db: Database;
   private _playerWithId: number;
   private _name: string;
@@ -13,6 +14,8 @@ export class Bot {
 
   constructor(db: Database, playerWithId: number) {
     this._db = db;
+    this._id = 0;
+    this._gameId = 0;
     this._playerWithId = playerWithId;
     this._name = `PlayerBot_${playerWithId}`;
     this._password = `BotPwd${playerWithId}`;
@@ -32,6 +35,14 @@ export class Bot {
 
   public setId(id: number) {
     this._id = id;
+  }
+
+  public get gameId() {
+    return this._gameId;
+  }
+
+  public setGameId(id: number) {
+    this._gameId = id;
   }
 
   public get db() {

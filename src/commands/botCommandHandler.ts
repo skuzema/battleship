@@ -1,8 +1,15 @@
 import { Bot } from 'models/Bot';
-import { Command, RegResponseData, Rooms, RoomUsers } from 'models/types';
+import {
+  Command,
+  CreateGameData,
+  RegResponseData,
+  Rooms,
+  Ship,
+} from 'models/types';
 import WebSocket from 'ws';
-import { sendUpdateRoomState } from './messageSender';
-import { Room } from 'models/Room';
+import { sendUpdateRoomState, sendCreateGame } from './messageSender';
+import { randomShips } from './botShipGenerator';
+import { Game } from 'models/Game';
 
 export function sendCreateRoom(ws: WebSocket, bot: Bot, body: string) {
   try {
@@ -25,35 +32,77 @@ export function sendCreateRoom(ws: WebSocket, bot: Bot, body: string) {
   }
 }
 
-export function sendAddPlayerToRoom(ws: WebSocket, bot: Bot, body: string) {
+export function sendAddPlayerToRoom(bot: Bot, body: string) {
   try {
-    console.log(
-      `---Bot sendAddPlayerToRoom 1, ws: ${ws}, Bot:${bot}, body:${body}`,
-    );
+    // console.log(
+    //   `---Bot sendAddPlayerToRoom 1, ws: ${ws}, Bot:${bot}, body:${body}`,
+    // );
     const rooms: Rooms[] = JSON.parse(body);
     console.log(
-      `---Bot sendAddPlayerToRoom 1a, createRoom: ${JSON.stringify(
-        rooms,
-      )}, createRoom.roomId :${JSON.stringify(rooms)}`,
+      `---Bot sendAddPlayerToRoom 2, rooms :${JSON.stringify(rooms)}`,
     );
     if (rooms) {
-      rooms.forEach((room)=>{
-        console
-      })
-      const roomUser: RoomUsers[] = JSON.parse(body);
-      const room = roomUser.find((o) => o.index === bot.id);
-      if (room) {
+      let targetRoom: Rooms = {
+        roomId: 0,
+        roomUsers: [],
+      };
+      rooms.forEach((room) => {
+        room.roomUsers.forEach((user) => {
+          if (user.index === bot.id) {
+            targetRoom = room;
+          }
+        });
+      });
+      console.log(
+        `---Bot sendAddPlayerToRoom 3, targetRoom: ${JSON.stringify(
+          targetRoom,
+        )}`,
+      );
+      if (targetRoom) {
         console.log(
-          `---Bot sendAddPlayerToRoom 2, ws: ${ws}, Bot:${bot}, body:${body}`,
+          `---Bot sendAddPlayerToRoom 4, targetRoom.roomId :${targetRoom.roomId}`,
         );
-        if (room.index) {
+        if (targetRoom.roomId) {
           console.log(
-            `---Bot sendAddPlayerToRoom 3, room.index: ${room.index}, add user:${bot.playerWithId}`,
+            `---Bot sendAddPlayerToRoom 5, targetRoom.roomId: ${targetRoom.roomId}, add user:${bot.playerWithId}`,
           );
-          bot.db.addPlayerToRoom(room.index, bot.playerWithId);
+          const game: Game | null = bot.db.addPlayerToRoom(
+            targetRoom.roomId,
+            bot.playerWithId,
+          );
+          if (game) {
+            sendCreateGame(game);
+          }
           sendUpdateRoomState(bot.db);
         }
       }
+    }
+  } catch (error: unknown) {
+    console.error(error);
+  }
+}
+
+export function sendAddShips(ws: WebSocket, bot: Bot, body: string) {
+  try {
+    const game: CreateGameData = JSON.parse(body);
+    console.log(`---Bot sendAddShips 1, game:${JSON.stringify(game)}`);
+    if (game.idGame && game.idPlayer === bot.id) {
+      bot.setGameId(game.idGame);
+      const addShipsData: Ship[] = randomShips();
+      console.log(
+        `---Bot sendAddShips 2, addShipsData: ${JSON.stringify(addShipsData)}`,
+      );
+      const addShipsRequest: Command = {
+        type: 'add_ships',
+        data: JSON.stringify({
+          gameId: bot.gameId,
+          ships: addShipsData,
+          indexPlayer: bot.id,
+        }),
+        id: 0,
+      };
+
+      ws.send(JSON.stringify(addShipsRequest));
     }
   } catch (error: unknown) {
     console.error(error);

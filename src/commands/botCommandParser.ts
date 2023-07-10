@@ -3,6 +3,7 @@ import WebSocket from 'ws';
 import {
   sendCreateRoom,
   sendAddPlayerToRoom,
+  sendAddShips,
 } from '../commands/botCommandHandler';
 import { Bot } from 'models/Bot';
 
@@ -18,10 +19,10 @@ export function handleCommands(ws: WebSocket, bot: Bot, message: string) {
         sendCreateRoom(ws, bot, command.data);
         break;
       case 'update_room':
-        sendAddPlayerToRoom(ws, bot, command.data);
+        sendAddPlayerToRoom(bot, command.data);
         break;
-      case 'add_user_to_room':
-        // handleAddUserToRoom(ws, db, command.data);
+      case 'create_game':
+        sendAddShips(ws, bot, command.data);
         break;
       case 'add_ships':
         // handleAddShips(ws, db, command.data);
