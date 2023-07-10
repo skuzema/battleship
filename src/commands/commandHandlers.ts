@@ -54,12 +54,13 @@ export function handleAddUserToRoom(
   body: string,
 ) {
   try {
-    console.log(`handleAddUserToRoom: ws.id:${ws.connectionId}, body:${body}`);
+    console.log(`AddUserToRoom: ws.id:${ws.connectionId}, body:${body}`);
     const req: AddPlayerToRoomRequestData = JSON.parse(body);
     const game: Game | null = db.addPlayerToRoom(
       req.indexRoom,
       ws.connectionId,
     );
+    console.log(`AddUserToRoom: game:${game}, gameId:${game?.id}`);
     if (game) {
       sendCreateGame(game);
     }
@@ -77,7 +78,9 @@ export function handleAddShips(
   try {
     console.log(`handleAddShips: ws.id:${ws.connectionId}, body:${body}`);
     const req: AddShipsRequestData = JSON.parse(body);
+    console.log(`handleAddShips: 2 gameId:${req.gameId}`);
     const game = db.getGameById(req.gameId);
+    console.log(`handleAddShips: 3 game:${game}`);
     const ships: Map<number, Ship[]> | undefined = game?.addShips(
       req.indexPlayer,
       req.ships,
@@ -85,6 +88,11 @@ export function handleAddShips(
     const fields: Map<number, Field> | undefined = game?.addFields(
       req.indexPlayer,
       req.ships,
+    );
+    console.log(
+      `handleAddShips 4: game:${game}, ships?.size === 2:${
+        ships?.size === 2
+      },fields?.size === 2: ${fields?.size === 2}`,
     );
     if (game && ships?.size === 2 && fields?.size === 2) {
       sendStartGame(game);

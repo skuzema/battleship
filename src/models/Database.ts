@@ -137,14 +137,25 @@ export class Database {
   }
 
   public addPlayerToRoom(roomId: number, playerId: number): Game | null {
+    console.log(`addPlayerToRoom 1, roomId:${roomId}, playerId:${playerId}`);
     const room = this.rooms.get(roomId);
     const player = this.players.get(playerId);
     if (room && player) {
+      const userExistInRoom = this.findUserInRoom(playerId);
+      if (userExistInRoom) {
+        if (userExistInRoom.id === roomId) {
+          return null;
+        }
+        this.deleteRoom(userExistInRoom.id);
+      }
       if (room.addPlayerToRoom(player) > 1) {
-        console.log('addPlayerToRoom > 1');
+        console.log('addPlayerToRoom Ok');
         this.nextGameId++;
         const game = new Game(this.nextGameId, room);
-        this.games.set(this.nextRoomId, game);
+        console.log(
+          `games set, size: ${this.games.size}, size: ${this.games.size}`,
+        );
+        this.games.set(this.nextGameId, game);
         return game;
       }
       console.log('addPlayerToRoom = 1');
@@ -174,6 +185,15 @@ export class Database {
 
   // Game methods
   public getGameById(gameId: number): Game | undefined {
+    console.log(
+      `getGameById gameId: ${gameId}, count: ${this.games.size}, games: ${
+        this.games
+      },
+      game ${this.games.get(gameId)}`,
+    );
+    this.games.forEach((value, key) => {
+      console.log(`getGameById key: ${key}, value: ${value}`);
+    });
     return this.games.get(gameId);
   }
 

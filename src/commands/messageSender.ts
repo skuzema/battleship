@@ -64,7 +64,7 @@ export function sendUpdateRoomState(db: Database) {
 
 export function sendCreateGame(game: Game) {
   // console.log(`sendCreateGame Game: ${JSON.stringify(game)}`);
-  console.log(`sendCreateGame`);
+  console.log(`sendCreateGame ${JSON.stringify(game.id)}`);
   const res: BaseResponseType = {
     type: 'create_game',
     data: '',
@@ -75,9 +75,9 @@ export function sendCreateGame(game: Game) {
       idGame: game.id,
       idPlayer: value.index,
     });
-    // console.log(
-    //   `sendCreateGame id: ${value.index}, data: ${JSON.stringify(res)}`,
-    // );
+    console.log(
+      `sendCreateGame id: ${value.index}, data: ${JSON.stringify(res)}`,
+    );
     value.ws.send(JSON.stringify(res));
   });
 }
