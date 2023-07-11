@@ -38,7 +38,6 @@ export class Player {
 
   public addWins() {
     this._wins++;
-    console.log(`Wins: user ${this._index}, wins: ${this._index}`);
   }
 
   public get wins() {

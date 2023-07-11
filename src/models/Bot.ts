@@ -58,7 +58,6 @@ export class Bot {
   }
 
   public initBot() {
-    console.log(`Init Bot`);
     dotenv.config();
     const WS_PORT = process.env.WS_PORT || '3000';
     const WS_URL = process.env.WS_URL || 'ws://localhost';
@@ -67,7 +66,6 @@ export class Bot {
     this._ws = wss;
 
     wss.on('open', () => {
-      console.log(`\nBot connection`);
       wss.send(
         JSON.stringify({
           type: 'reg',
@@ -85,7 +83,6 @@ export class Bot {
 
       duplex.on('data', (command: string) => {
         try {
-          console.log(`\nBot command received: ${command}`);
           handleCommands(wss, this, command);
         } catch (error: unknown) {
           console.error(error);

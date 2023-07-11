@@ -28,7 +28,6 @@ export function sendRegResponse(ws: WebSocketWithId, res: RegResponseData) {
 
 export function sendUpdateRoomState(db: Database) {
   try {
-    console.log('Handle sendUpdateRoomState');
     const singleRooms = db.getRoomsWithSinglePlayer();
     const players = db.getPlayers();
     const res: BaseResponseType = {
@@ -38,7 +37,6 @@ export function sendUpdateRoomState(db: Database) {
     };
     const rooms: Rooms[] = [];
     singleRooms.forEach(function (value) {
-      console.log(`singleRooms: ${value.id}, ${value.name}`);
       const roomUsers: RoomUsers[] = [];
       for (let i = 0; i < value.players.length; i++) {
         roomUsers.push({

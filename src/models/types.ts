@@ -4,8 +4,6 @@ export interface WebSocketWithId extends WebSocket {
   connectionId: number;
 }
 
-//  Request-response interfaces
-
 interface BaseCommandType<T> {
   type: string;
   data: T;

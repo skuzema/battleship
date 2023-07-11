@@ -39,23 +39,9 @@ export class Database {
       this.players.set(this.nextPlayerId, player);
       responseData.name = player.name;
       responseData.index = player.index;
-      console.log(
-        `createPlayer, responseData: ${JSON.stringify(responseData)}`,
-      );
-      this.players.forEach(function (value, key) {
-        console.log(
-          `createPlayer, player key: ${key} value: ${JSON.stringify({
-            index: value.index,
-            name: value.name,
-          })}`,
-        );
-      });
 
       return responseData;
     } else {
-      console.log(
-        `createPlayer, validationError: ${JSON.stringify(validationError)}`,
-      );
       return validationError;
     }
   }
@@ -131,27 +117,11 @@ export class Database {
     this.nextRoomId++;
     const room = new Room(this.nextRoomId, this.players.get(ws.connectionId));
     this.rooms.set(this.nextRoomId, room);
-    this.rooms.forEach(function (value, key) {
-      console.log(
-        `createRoom, room key: ${key} value: ${JSON.stringify({
-          id: value.id,
-          name: value.name,
-        })}`,
-      );
-      value.players.forEach(function (value1, key1) {
-        console.log(
-          `createRoom, player key: ${key1} value: ${JSON.stringify({
-            index: value1.index,
-            name: value1.name,
-          })}`,
-        );
-      });
-    });
+
     return this.rooms;
   }
 
   public addPlayerToRoom(roomId: number, playerId: number): Game | null {
-    console.log(`addPlayerToRoom 1, roomId:${roomId}, playerId:${playerId}`);
     const room = this.rooms.get(roomId);
     const player = this.players.get(playerId);
     if (room && player) {
@@ -163,16 +133,11 @@ export class Database {
         this.deleteRoom(userExistInRoom.id);
       }
       if (room.addPlayerToRoom(player) > 1) {
-        console.log('addPlayerToRoom Ok');
         this.nextGameId++;
         const game = new Game(this.nextGameId, room);
-        console.log(
-          `games set, size: ${this.games.size}, size: ${this.games.size}`,
-        );
         this.games.set(this.nextGameId, game);
         return game;
       }
-      console.log('addPlayerToRoom = 1');
     }
     return null;
   }
@@ -199,15 +164,6 @@ export class Database {
 
   // Game methods
   public getGameById(gameId: number): Game | undefined {
-    console.log(
-      `getGameById gameId: ${gameId}, count: ${this.games.size}, games: ${
-        this.games
-      },
-      game ${this.games.get(gameId)}`,
-    );
-    this.games.forEach((value, key) => {
-      console.log(`getGameById key: ${key}, value: ${value}`);
-    });
     return this.games.get(gameId);
   }
 
@@ -220,18 +176,14 @@ export class Database {
   }
 
   public deleteRoom(roomId: number): boolean {
-    console.log(`deleteRoom 1:`);
     if (this.rooms.delete(roomId)) {
-      console.log(`deleteRoom Ok!`);
       return true;
     }
     return false;
   }
 
   public deleteGame(gameId: number): boolean {
-    console.log(`deleteGame 1:`);
     if (this.games.delete(gameId)) {
-      console.log(`deleteGame Ok!`);
       return true;
     }
     return false;
@@ -240,64 +192,41 @@ export class Database {
   public findUserInGame(playerId: number): Game | undefined {
     let returnObject: Game | undefined = undefined;
     let isFound = false;
-    console.log(`findUserInGame 1.`);
     this.games.forEach(function (value) {
-      console.log(`findUserInGame 2.`);
       value.room.players.forEach(function (value1) {
-        console.log(
-          `findUserInGame 3. value1.index === playerId ${
-            value1.index === playerId
-          }`,
-        );
         if (value1.index === playerId) {
-          console.log(`findUserInGame 4. ${value1.index}`);
           isFound = true;
         }
       });
       if (isFound) {
-        console.log(`findUserInGame 3a. ${value}`);
         returnObject = value;
       }
     });
-    console.log(`findUserInGame 1a  ${returnObject}`);
     return returnObject;
   }
 
   public findUserInRoom(playerId: number): Room | undefined {
     let returnObject: Room | undefined = undefined;
     let isFound = false;
-    console.log(`findUserInRoom 1.`);
     this.rooms.forEach(function (value) {
-      console.log(`findUserInRoom 2.`);
       value.players.forEach(function (value1) {
-        console.log(
-          `findUserInRoom 3. value1.index === playerId ${
-            value1.index === playerId
-          }`,
-        );
         if (value1.index === playerId) {
-          console.log(`findUserInRoom 4. ${value1.index}`);
           isFound = true;
         }
       });
       if (isFound) {
-        console.log(`findUserInRoom 3a. ${value}`);
         returnObject = value;
       }
     });
-    console.log(`findUserInRoom 1a  ${returnObject}`);
     return returnObject;
   }
 
   public disconnectPlayer(playerId: number): void {
     const player = this.players.get(playerId);
-    console.log(`disconnectPlayer 1. player: ${player}`);
     if (player) {
       const room = this.findUserInRoom(playerId);
-      console.log(`disconnectPlayer 2. room: ${room}`);
       if (room) {
         const game = this.findUserInGame(playerId);
-        console.log(`disconnectPlayer 3. game: ${game}`);
         if (game) {
           const enemyPlayerId = game.getEnemyPlayerId(playerId);
           if (enemyPlayerId) {
@@ -308,7 +237,6 @@ export class Database {
             this.deleteGame(game.id);
           }
         } else {
-          // room.removePlayerById(playerId);
           this.deleteRoom(room.id);
           sendUpdateRoomState(this);
         }

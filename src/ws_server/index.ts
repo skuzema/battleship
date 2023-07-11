@@ -22,7 +22,6 @@ export const wsServer = (port: number, db: Database): WebSocketServer => {
 
     duplex.on('data', async (command: string) => {
       try {
-        // console.log(`\nCommand received: ${command}`);
         handleCommands(ws, db, command);
       } catch (error: unknown) {
         console.error(error);

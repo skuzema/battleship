@@ -13,10 +13,6 @@ import { Bot } from 'models/Bot';
 export function handleCommands(ws: WebSocket, bot: Bot, message: string) {
   try {
     const command: Command = JSON.parse(message);
-    console.log(
-      `Bot command type: ${command.type}`,
-      `command: ${JSON.stringify(command)}, ws:${ws}, bot:${bot} `,
-    );
     switch (command.type) {
       case 'reg':
         sendCreateRoom(ws, bot, command.data);

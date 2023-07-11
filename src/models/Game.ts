@@ -36,7 +36,7 @@ export class Game {
   }
 
   public setTurn(playerId: number) {
-    return this._turn = playerId;
+    return (this._turn = playerId);
   }
 
   public getShips(playerId: number): Ship[] {
@@ -81,15 +81,11 @@ export class Game {
 
   public attack(attackObj: AttackRequestData): AttackResponseData | undefined {
     const { x, y, indexPlayer } = attackObj;
-    console.log(`attack x: ${x}, y: ${y}, indexPlayer: ${indexPlayer}`);
-
     const enemyPlayerId = this.getEnemyPlayerId(indexPlayer);
-
     if (enemyPlayerId !== undefined) {
       const enemyPlayerField = this.getFields(enemyPlayerId);
       if (enemyPlayerField !== undefined) {
         const targetCellStatus = enemyPlayerField.field[y][x];
-
         if (
           targetCellStatus === CellStatus.Empty ||
           targetCellStatus === CellStatus.Miss
@@ -111,13 +107,7 @@ export class Game {
           )
             ? AttackStatus.Killed
             : AttackStatus.Shot;
-          console.log(
-            `1. markSurroundingCells attackResult === AttackStatus.Killed ${
-              attackResult === AttackStatus.Killed
-            }`,
-          );
           if (attackResult === AttackStatus.Killed) {
-            console.log(`2. ship !== undefined ${ship !== undefined}`);
             if (ship !== undefined) {
               const shipCells = this.getShipCells(ship);
               this.markSurroundingCells(
@@ -140,7 +130,6 @@ export class Game {
       const shipShotCells = shipCells.filter(
         (cell) => playerField.field[cell.y][cell.x] === CellStatus.Shot,
       );
-
       return shipShotCells.length === shipCells.length;
     }
     return false;
@@ -151,10 +140,8 @@ export class Game {
     cell: { x: number; y: number },
   ): Ship | undefined {
     const currentPlayerField = this.getFields(playerId);
-
     if (currentPlayerField !== undefined) {
       const ships = this.getShips(playerId);
-
       for (const ship of ships) {
         const shipCells = this.getShipCells(ship);
         if (
@@ -223,7 +210,6 @@ export class Game {
           indexPlayer,
           AttackStatus.Miss,
         );
-        console.log(`3. sendMissAroundShip ${JSON.stringify(attackResponse)}`);
         sendStatusAroundShip(this, attackResponse);
       } else if (field[y][x] === CellStatus.Shot) {
         const attackResponse = this.createAttackResponseData(
@@ -232,7 +218,6 @@ export class Game {
           indexPlayer,
           AttackStatus.Killed,
         );
-        console.log(`4. sendKillAroundShip ${JSON.stringify(attackResponse)}`);
         sendStatusAroundShip(this, attackResponse);
       }
     }
@@ -243,20 +228,16 @@ export class Game {
   ): AttackResponseData | undefined {
     const { indexPlayer } = randomAttackObj;
     const enemyPlayerId = this.getEnemyPlayerId(indexPlayer);
-
     if (enemyPlayerId !== undefined) {
       const enemyPlayerField = this.getFields(enemyPlayerId);
       if (enemyPlayerField !== undefined) {
         const emptyOrShipCells = this.getEmptyOrShipCells(enemyPlayerField);
         const randomCell = this.getRandomCell(emptyOrShipCells);
-
         if (randomCell === undefined) {
-          return undefined; // No valid cells available for attack
+          return undefined;
         }
-
         const { x, y } = randomCell;
         const targetCellStatus = enemyPlayerField.field[y][x];
-
         if (
           targetCellStatus === CellStatus.Empty ||
           targetCellStatus === CellStatus.Miss
@@ -325,13 +306,11 @@ export class Game {
   }
 
   public finishGameIfDisconnected(playerId: number): boolean {
-    console.log(`finishGameIfDisconnected 1`);
     const player = this._room.players.find(
       (player) => player.index === playerId,
     );
     if (player) {
       player?.addWins();
-      console.log(`finishGameIfDisconnected 2`);
       return true;
     } else {
       return false;
@@ -339,11 +318,9 @@ export class Game {
   }
   private getEmptyOrShipCells(field: Field): { x: number; y: number }[] {
     const emptyOrShipCells: { x: number; y: number }[] = [];
-
     for (let x = 0; x < 10; x++) {
       for (let y = 0; y < 10; y++) {
         const cellStatus = field.field[y][x];
-
         if (
           cellStatus === CellStatus.Empty ||
           cellStatus === CellStatus.Small ||
@@ -355,7 +332,6 @@ export class Game {
         }
       }
     }
-
     return emptyOrShipCells;
   }
 
@@ -365,7 +341,6 @@ export class Game {
     if (cells.length === 0) {
       return undefined;
     }
-
     const randomIndex = Math.floor(Math.random() * cells.length);
     return cells[randomIndex];
   }

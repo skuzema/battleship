@@ -27,20 +27,13 @@ export class Room {
   }
 
   public removePlayers() {
-    console.log(`removePlayers`);
     return (this._roomPlayers = []);
   }
 
   public removePlayerById(playerId: number): boolean {
-    console.log(`removePlayerById 1`);
     const index = this._roomPlayers.findIndex((o) => o.index === playerId);
-    console.log(`removePlayerById 2 index:${index}`);
     if (index > -1) {
-      console.log(
-        `removePlayerById 3 size before: ${this._roomPlayers.length}`,
-      );
       this._roomPlayers.splice(index, 1);
-      console.log(`removePlayerById 4 size after: ${this._roomPlayers.length}`);
       return true;
     }
     return false;
