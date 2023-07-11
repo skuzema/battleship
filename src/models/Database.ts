@@ -17,9 +17,8 @@ export class Database {
   private bots = new Map<number, Bot>();
 
   private nextPlayerId = 0;
-  public nextRoomId = 0;
-  public nextGameId = 0;
-  public nextBotId = 0;
+  private nextRoomId = 0;
+  private nextGameId = 0;
 
   // Player methods
   public createPlayer(
@@ -65,6 +64,11 @@ export class Database {
     const bot: Bot = new Bot(db, playerId);
     this.bots.set(playerId, bot);
     bot.initBot();
+  }
+
+  public deleteBot(bot: Bot, playerId: number) {
+    bot.ws.close();
+    this.bots.delete(playerId);
   }
 
   public getPlayers(): Player[] {

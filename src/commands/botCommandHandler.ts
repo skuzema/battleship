@@ -1,13 +1,15 @@
 import { Bot } from 'models/Bot';
 import {
+  BaseResponseType,
   Command,
   CreateGameData,
   RegResponseData,
   Rooms,
   Ship,
+  TurnData,
 } from 'models/types';
 import WebSocket from 'ws';
-import { sendUpdateRoomState, sendCreateGame } from './messageSender';
+import { sendUpdateRoomState, sendCreateGame, sendTurn } from './messageSender';
 import { randomShips } from './botShipGenerator';
 import { Game } from 'models/Game';
 
@@ -104,6 +106,49 @@ export function sendAddShips(ws: WebSocket, bot: Bot, body: string) {
 
       ws.send(JSON.stringify(addShipsRequest));
     }
+  } catch (error: unknown) {
+    console.error(error);
+  }
+}
+
+export function sendStartGame(bot: Bot) {
+  try {
+    console.log(`---Bot sendStartGame 1, sendTurn`);
+    const game: Game | undefined = bot.db.getGameById(bot.gameId);
+    if (game) {
+      game.setTurn(bot.playerWithId);
+      sendTurn(game);
+    }
+  } catch (error: unknown) {
+    console.error(error);
+  }
+}
+
+export function handleTurn(ws: WebSocket, bot: Bot, body: string) {
+  try {
+    const currentTurn: TurnData = JSON.parse(body);
+    if (currentTurn && currentTurn.currentPlayer === bot.id) {
+      const res: BaseResponseType = {
+        type: 'randomAttack',
+        data: JSON.stringify({
+          gameId: bot.gameId,
+          indexPlayer: bot.id,
+        }),
+        id: 0,
+      };
+      setTimeout(() => {
+        ws.send(JSON.stringify(res));
+      }, 1000);
+    }
+  } catch (error: unknown) {
+    console.error(error);
+  }
+}
+
+export function handleFinish(bot: Bot) {
+  try {
+    console.log(`---Bot handleFinish 1`);
+    bot.db.deleteBot(bot, bot.id);
   } catch (error: unknown) {
     console.error(error);
   }

@@ -4,6 +4,9 @@ import {
   sendCreateRoom,
   sendAddPlayerToRoom,
   sendAddShips,
+  sendStartGame as handleStartGame,
+  handleTurn,
+  handleFinish,
 } from '../commands/botCommandHandler';
 import { Bot } from 'models/Bot';
 
@@ -24,17 +27,14 @@ export function handleCommands(ws: WebSocket, bot: Bot, message: string) {
       case 'create_game':
         sendAddShips(ws, bot, command.data);
         break;
-      case 'add_ships':
-        // handleAddShips(ws, db, command.data);
+      case 'start_game':
+        handleStartGame(bot);
         break;
-      case 'attack':
-        // handleAttack(db, command.data);
+      case 'turn':
+        handleTurn(ws, bot, command.data);
         break;
-      case 'randomAttack':
-        // handleRandomAttack(db, command.data);
-        break;
-      case 'single_play':
-        // handleSinglePlay(ws, db, command.data);
+      case 'finish':
+        handleFinish(bot);
         break;
       default:
     }

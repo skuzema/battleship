@@ -17,6 +17,9 @@ export function sendRegResponse(ws: WebSocketWithId, res: RegResponseData) {
       data: JSON.stringify(res),
       id: 0,
     };
+    console.log(
+      `-> reg, player: ${ws.connectionId}, data: ${JSON.stringify(res)}`,
+    );
     ws.send(JSON.stringify(response));
   } catch (error: unknown) {
     console.error(error);
@@ -37,7 +40,6 @@ export function sendUpdateRoomState(db: Database) {
     singleRooms.forEach(function (value) {
       console.log(`singleRooms: ${value.id}, ${value.name}`);
       const roomUsers: RoomUsers[] = [];
-
       for (let i = 0; i < value.players.length; i++) {
         roomUsers.push({
           name: value.players[i]?.name,
@@ -47,12 +49,11 @@ export function sendUpdateRoomState(db: Database) {
       rooms.push({ roomId: value.id, roomUsers: roomUsers });
     });
     res.data = JSON.stringify(rooms);
-    console.log('sendUpdateRoomState:', JSON.stringify(res));
     players.forEach(function (value) {
       console.log(
-        `Send Update Room State for ${value.ws.connectionId}: ${JSON.stringify(
-          res,
-        )}`,
+        `-> update_room, player: ${
+          value.ws.connectionId
+        }, data: ${JSON.stringify(res)}`,
       );
       value.ws.send(JSON.stringify(res));
     });
@@ -63,8 +64,6 @@ export function sendUpdateRoomState(db: Database) {
 }
 
 export function sendCreateGame(game: Game) {
-  // console.log(`sendCreateGame Game: ${JSON.stringify(game)}`);
-  console.log(`sendCreateGame ${JSON.stringify(game.id)}`);
   const res: BaseResponseType = {
     type: 'create_game',
     data: '',
@@ -76,14 +75,13 @@ export function sendCreateGame(game: Game) {
       idPlayer: value.index,
     });
     console.log(
-      `sendCreateGame id: ${value.index}, data: ${JSON.stringify(res)}`,
+      `-> create_game, player: ${value.index}, data: ${JSON.stringify(res)}`,
     );
     value.ws.send(JSON.stringify(res));
   });
 }
 
 export function sendStartGame(game: Game) {
-  console.log(`sendStartGame : ${game.id}`);
   const res: BaseResponseType = {
     type: 'start_game',
     data: '',
@@ -94,16 +92,15 @@ export function sendStartGame(game: Game) {
       ships: game.getShips(value.index),
       currentPlayerIndex: value.index,
     });
-    // console.log(
-    //   `sendStartGame id: ${value.index}, data: ${JSON.stringify(res)}`,
-    // );
+    console.log(
+      `-> start_game, player: ${value.index}, data: ${JSON.stringify(res)}`,
+    );
     value.ws.send(JSON.stringify(res));
   });
   sendTurn(game);
 }
 
 export function sendTurn(game: Game) {
-  console.log(`sendTurn playerId: ${game.turn}`);
   const res: BaseResponseType = {
     type: 'turn',
     data: JSON.stringify({
@@ -112,9 +109,9 @@ export function sendTurn(game: Game) {
     id: 0,
   };
   game.room.players.forEach(function (value) {
-    // console.log(
-    //   `sendStartGame id: ${value.index}, data: ${JSON.stringify(res)}`,
-    // );
+    console.log(
+      `-> turn, player: ${value.index}, data: ${JSON.stringify(res)}`,
+    );
     value.ws.send(JSON.stringify(res));
   });
 }
@@ -134,11 +131,9 @@ export function sendAttackResponse(
     };
     let finishGame = false;
     game.room.players.forEach(function (value) {
-      // console.log(
-      //   `sendAttackResponse socket: ${
-      //     value.ws.connectionId
-      //   }, data: ${JSON.stringify(res)}`,
-      // );
+      console.log(
+        `-> attack, player: ${value.index}, data: ${JSON.stringify(res)}`,
+      );
       value.ws.send(JSON.stringify(res));
       if (game.finishGame(value.index)) {
         finishGame = true;
@@ -171,11 +166,9 @@ export function sendMissAroundShip(
       id: 0,
     };
     game.room.players.forEach(function (value) {
-      // console.log(
-      //   `sendMissAroundShip socket: ${
-      //     value.ws.connectionId
-      //   }, data: ${JSON.stringify(res)}`,
-      // );
+      console.log(
+        `-> attack, player: ${value.index}, data: ${JSON.stringify(res)}`,
+      );
       value.ws.send(JSON.stringify(res));
     });
     sendTurn(game);
@@ -183,7 +176,6 @@ export function sendMissAroundShip(
 }
 
 export function sendFinishGame(game: Game, playerId: number) {
-  console.log(`sendFinishGame playerId: ${playerId}`);
   const res: BaseResponseType = {
     type: 'finish',
     data: JSON.stringify({
@@ -193,16 +185,13 @@ export function sendFinishGame(game: Game, playerId: number) {
   };
   game.room.players.forEach(function (value) {
     console.log(
-      `sendFinishGame socket: ${value.ws.connectionId}, data: ${JSON.stringify(
-        res,
-      )}`,
+      `-> finish, player: ${value.index}, data: ${JSON.stringify(res)}`,
     );
     value.ws.send(JSON.stringify(res));
   });
 }
 
 export function sendUpdateWinners(db: Database) {
-  console.log(`sendUpdateWinners`);
   const res: BaseResponseType = {
     type: 'update_winners',
     data: JSON.stringify(db.getWinners()),
@@ -211,7 +200,7 @@ export function sendUpdateWinners(db: Database) {
   const players = db.getPlayers();
   players.forEach(function (value) {
     console.log(
-      `sendUpdateWinners ${value.ws.connectionId}: ${JSON.stringify(res)}`,
+      `-> update_winners, player: ${value.index}, data: ${JSON.stringify(res)}`,
     );
     value.ws.send(JSON.stringify(res));
   });

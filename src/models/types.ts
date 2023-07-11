@@ -71,6 +71,10 @@ export interface StartGameResponseData {
   currentPlayerIndex: number;
 }
 
+export interface TurnData {
+  currentPlayer: number;
+}
+
 export enum CellStatus {
   Empty,
   Miss,

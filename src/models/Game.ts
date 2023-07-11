@@ -35,6 +35,10 @@ export class Game {
     return this._turn;
   }
 
+  public setTurn(playerId: number) {
+    return this._turn = playerId;
+  }
+
   public getShips(playerId: number): Ship[] {
     const ships: Ship[] = [];
     this._ships.get(playerId)?.forEach(function (value) {
