@@ -58,6 +58,7 @@ export class Database {
     const roomId = this.games.get(bot.gameId)?.room.id;
     if (roomId) {
       this.deleteRoom(roomId);
+      sendUpdateRoomState(this);
     }
     this.deleteGame(bot.gameId);
     this.bots.delete(playerId);

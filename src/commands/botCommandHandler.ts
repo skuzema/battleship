@@ -9,7 +9,7 @@ import {
   TurnData,
 } from 'models/types';
 import WebSocket from 'ws';
-import { sendCreateGame, sendTurn } from './messageSender';
+import { sendCreateGame, sendTurn, sendUpdateRoomState } from './messageSender';
 import { randomShips } from './botShipGenerator';
 import { Game } from 'models/Game';
 
@@ -52,6 +52,7 @@ export function sendAddPlayerToRoom(bot: Bot, body: string) {
         );
         if (game) {
           sendCreateGame(game);
+          sendUpdateRoomState(bot.db);
         }
       }
     }
