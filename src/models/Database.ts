@@ -54,6 +54,12 @@ export class Database {
 
   public deleteBot(bot: Bot, playerId: number) {
     bot.ws.close();
+    this.deletePlayer(bot.id);
+    const roomId = this.games.get(bot.gameId)?.room.id;
+    if (roomId) {
+      this.deleteRoom(roomId);
+    }
+    this.deleteGame(bot.gameId);
     this.bots.delete(playerId);
   }
 
