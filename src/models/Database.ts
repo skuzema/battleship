@@ -191,32 +191,24 @@ export class Database {
 
   public findUserInGame(playerId: number): Game | undefined {
     let returnObject: Game | undefined = undefined;
-    let isFound = false;
     this.games.forEach(function (value) {
       value.room.players.forEach(function (value1) {
         if (value1.index === playerId) {
-          isFound = true;
+          returnObject = value;
         }
       });
-      if (isFound) {
-        returnObject = value;
-      }
     });
     return returnObject;
   }
 
   public findUserInRoom(playerId: number): Room | undefined {
     let returnObject: Room | undefined = undefined;
-    let isFound = false;
     this.rooms.forEach(function (value) {
       value.players.forEach(function (value1) {
         if (value1.index === playerId) {
-          isFound = true;
+          returnObject = value;
         }
       });
-      if (isFound) {
-        returnObject = value;
-      }
     });
     return returnObject;
   }

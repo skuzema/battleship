@@ -1,7 +1,7 @@
 import { Ship, ShipType } from '../models/types';
 
 function randomDirection(): boolean {
-  return Math.random() < 0.5; 
+  return Math.random() < 0.5;
 }
 
 function getRandomPosition(): { x: number; y: number } {
@@ -47,8 +47,10 @@ export function randomShips(): Ship[] {
 
     let position = getRandomPosition();
     let validPosition = false;
+    let count = 0;
 
-    while (!validPosition) {
+    while (!validPosition && count < 1000) {
+      count++;
       validPosition = true;
 
       // Check if the ship touches any existing ship or goes out of bounds
@@ -101,7 +103,6 @@ export function randomShips(): Ship[] {
 
     ships.push(ship);
   }
-
   return ships;
 }
 
@@ -116,6 +117,6 @@ function getShipLength(type: ShipType): number {
     case ShipType.small:
       return 1;
     default:
-      return 0;
+      return 1;
   }
 }

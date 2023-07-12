@@ -9,7 +9,7 @@ import {
   TurnData,
 } from 'models/types';
 import WebSocket from 'ws';
-import { sendUpdateRoomState, sendCreateGame, sendTurn } from './messageSender';
+import { sendCreateGame, sendTurn } from './messageSender';
 import { randomShips } from './botShipGenerator';
 import { Game } from 'models/Game';
 
@@ -35,7 +35,7 @@ export function sendAddPlayerToRoom(bot: Bot, body: string) {
     const rooms: Rooms[] = JSON.parse(body);
     if (rooms) {
       let targetRoom: Rooms = {
-        roomId: 0,
+        roomId: -1,
         roomUsers: [],
       };
       rooms.forEach((room) => {
@@ -45,16 +45,13 @@ export function sendAddPlayerToRoom(bot: Bot, body: string) {
           }
         });
       });
-      if (targetRoom) {
-        if (targetRoom.roomId) {
-          const game: Game | null = bot.db.addPlayerToRoom(
-            targetRoom.roomId,
-            bot.playerWithId,
-          );
-          if (game) {
-            sendCreateGame(game);
-          }
-          sendUpdateRoomState(bot.db);
+      if (targetRoom && targetRoom.roomId >= 0) {
+        const game: Game | null = bot.db.addPlayerToRoom(
+          targetRoom.roomId,
+          bot.playerWithId,
+        );
+        if (game) {
+          sendCreateGame(game);
         }
       }
     }
