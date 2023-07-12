@@ -1,0 +1,363 @@
+import { Room } from './Room';
+import { Field } from './Field';
+import {
+  Ship,
+  AttackRequestData,
+  CellStatus,
+  AttackStatus,
+  AttackResponseData,
+  RandomAttackRequestData,
+} from './types';
+import { sendMissAroundShip as sendStatusAroundShip } from '../commands/messageSender';
+
+export class Game {
+  private _gameId: number;
+  private _room: Room;
+  private _turn: number;
+  private _ships = new Map<number, Ship[]>();
+  private _fields = new Map<number, Field>();
+
+  constructor(gameId: number, room: Room) {
+    this._gameId = gameId;
+    this._room = room;
+    this._turn = room.players[0].index;
+  }
+
+  public get id() {
+    return this._gameId;
+  }
+
+  public get room() {
+    return this._room;
+  }
+
+  public get turn() {
+    return this._turn;
+  }
+
+  public setTurn(playerId: number) {
+    return (this._turn = playerId);
+  }
+
+  public getShips(playerId: number): Ship[] {
+    const ships: Ship[] = [];
+    this._ships.get(playerId)?.forEach(function (value) {
+      ships.push({
+        position: value.position,
+        direction: value.direction,
+        length: value.length,
+        type: value.type,
+      });
+    });
+    return ships;
+  }
+
+  public addShips(playerId: number, ships: Ship[]): Map<number, Ship[]> {
+    this._ships.set(playerId, ships);
+    return this._ships;
+  }
+
+  public addFields(playerId: number, ships: Ship[]): Map<number, Field> {
+    const field = new Field(ships);
+    this._fields.set(playerId, field);
+    return this._fields;
+  }
+
+  public getFields(playerId: number): Field | undefined {
+    return this._fields.get(playerId);
+  }
+
+  public getPlayerId(playerId: number): number | undefined {
+    const playerIds = this._room.players.map((player) => player.index);
+    const currentPlayerId = playerIds.find((id) => id == playerId);
+    return currentPlayerId;
+  }
+
+  public getEnemyPlayerId(playerId: number): number | undefined {
+    const playerIds = this._room.players.map((player) => player.index);
+    const enemyPlayerId = playerIds.find((id) => id !== playerId);
+    return enemyPlayerId;
+  }
+
+  public attack(attackObj: AttackRequestData): AttackResponseData | undefined {
+    const { x, y, indexPlayer } = attackObj;
+    const enemyPlayerId = this.getEnemyPlayerId(indexPlayer);
+    if (enemyPlayerId !== undefined) {
+      const enemyPlayerField = this.getFields(enemyPlayerId);
+      if (enemyPlayerField !== undefined) {
+        const targetCellStatus = enemyPlayerField.field[y][x];
+        if (
+          targetCellStatus === CellStatus.Empty ||
+          targetCellStatus === CellStatus.Miss
+        ) {
+          enemyPlayerField.field[y][x] = CellStatus.Miss;
+          this._turn = enemyPlayerId;
+          return this.createAttackResponseData(
+            x,
+            y,
+            indexPlayer,
+            AttackStatus.Miss,
+          );
+        } else {
+          enemyPlayerField.field[y][x] = CellStatus.Shot;
+          const ship = this.getShipByCell(enemyPlayerId, { x, y });
+          const attackResult: AttackStatus = this.isShipKilled(
+            enemyPlayerField,
+            ship,
+          )
+            ? AttackStatus.Killed
+            : AttackStatus.Shot;
+          if (attackResult === AttackStatus.Killed) {
+            if (ship !== undefined) {
+              const shipCells = this.getShipCells(ship);
+              this.markSurroundingCells(
+                enemyPlayerField.field,
+                shipCells,
+                indexPlayer,
+              );
+            }
+          }
+          this._turn = indexPlayer;
+          return this.createAttackResponseData(x, y, indexPlayer, attackResult);
+        }
+      }
+    }
+  }
+
+  private isShipKilled(playerField: Field, ship: Ship | undefined): boolean {
+    if (playerField !== undefined && ship !== undefined) {
+      const shipCells = this.getShipCells(ship);
+      const shipShotCells = shipCells.filter(
+        (cell) => playerField.field[cell.y][cell.x] === CellStatus.Shot,
+      );
+      return shipShotCells.length === shipCells.length;
+    }
+    return false;
+  }
+
+  private getShipByCell(
+    playerId: number,
+    cell: { x: number; y: number },
+  ): Ship | undefined {
+    const currentPlayerField = this.getFields(playerId);
+    if (currentPlayerField !== undefined) {
+      const ships = this.getShips(playerId);
+      for (const ship of ships) {
+        const shipCells = this.getShipCells(ship);
+        if (
+          shipCells.some(
+            (shipCell: { x: number; y: number }) =>
+              shipCell.x === cell.x && shipCell.y === cell.y,
+          )
+        ) {
+          return ship;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  private getShipCells(ship: Ship): { x: number; y: number }[] {
+    const cells: { x: number; y: number }[] = [];
+    const { position, direction, length } = ship;
+    const { x, y } = position;
+
+    if (direction) {
+      for (let i = y; i < y + length; i++) {
+        cells.push({ x, y: i });
+      }
+    } else {
+      for (let i = x; i < x + length; i++) {
+        cells.push({ x: i, y });
+      }
+    }
+    return cells;
+  }
+
+  private markSurroundingCells(
+    field: CellStatus[][],
+    shipCells: { x: number; y: number }[],
+    indexPlayer: number,
+  ) {
+    shipCells.forEach((cell) => {
+      const { x, y } = cell;
+      this.markCell(field, x - 1, y - 1, indexPlayer);
+      this.markCell(field, x, y - 1, indexPlayer);
+      this.markCell(field, x + 1, y - 1, indexPlayer);
+      this.markCell(field, x - 1, y, indexPlayer);
+      this.markCell(field, x + 1, y, indexPlayer);
+      this.markCell(field, x - 1, y + 1, indexPlayer);
+      this.markCell(field, x, y + 1, indexPlayer);
+      this.markCell(field, x + 1, y + 1, indexPlayer);
+    });
+    shipCells.forEach((cell) => {
+      const { x, y } = cell;
+      this.markCell(field, x, y, indexPlayer);
+    });
+  }
+
+  private markCell(
+    field: CellStatus[][],
+    x: number,
+    y: number,
+    indexPlayer: number,
+  ) {
+    if (x >= 0 && x < field.length && y >= 0 && y < field.length) {
+      if (field[y][x] === CellStatus.Empty) {
+        const attackResponse = this.createAttackResponseData(
+          x,
+          y,
+          indexPlayer,
+          AttackStatus.Miss,
+        );
+        sendStatusAroundShip(this, attackResponse);
+      } else if (field[y][x] === CellStatus.Shot) {
+        const attackResponse = this.createAttackResponseData(
+          x,
+          y,
+          indexPlayer,
+          AttackStatus.Killed,
+        );
+        sendStatusAroundShip(this, attackResponse);
+      }
+    }
+  }
+
+  public randomAttack(
+    randomAttackObj: RandomAttackRequestData,
+  ): AttackResponseData | undefined {
+    const { indexPlayer } = randomAttackObj;
+    const enemyPlayerId = this.getEnemyPlayerId(indexPlayer);
+    if (enemyPlayerId !== undefined) {
+      const enemyPlayerField = this.getFields(enemyPlayerId);
+      if (enemyPlayerField !== undefined) {
+        const emptyOrShipCells = this.getEmptyOrShipCells(enemyPlayerField);
+        const randomCell = this.getRandomCell(emptyOrShipCells);
+        if (randomCell === undefined) {
+          return undefined;
+        }
+        const { x, y } = randomCell;
+        const targetCellStatus = enemyPlayerField.field[y][x];
+        if (
+          targetCellStatus === CellStatus.Empty ||
+          targetCellStatus === CellStatus.Miss
+        ) {
+          enemyPlayerField.field[y][x] = CellStatus.Miss;
+          this._turn = enemyPlayerId;
+          return this.createAttackResponseData(
+            x,
+            y,
+            indexPlayer,
+            AttackStatus.Miss,
+          );
+        } else {
+          enemyPlayerField.field[y][x] = CellStatus.Shot;
+          const ship = this.getShipByCell(enemyPlayerId, { x, y });
+          const attackResult: AttackStatus = this.isShipKilled(
+            enemyPlayerField,
+            ship,
+          )
+            ? AttackStatus.Killed
+            : AttackStatus.Shot;
+
+          if (attackResult === AttackStatus.Killed) {
+            if (ship !== undefined) {
+              const shipCells = this.getShipCells(ship);
+              this.markSurroundingCells(
+                enemyPlayerField.field,
+                shipCells,
+                indexPlayer,
+              );
+            }
+          }
+          this._turn = indexPlayer;
+          return this.createAttackResponseData(x, y, indexPlayer, attackResult);
+        }
+      }
+    }
+  }
+
+  public finishGame(currentPlayerId: number): boolean {
+    const enemyPlayerId = this.getEnemyPlayerId(currentPlayerId);
+    if (enemyPlayerId !== undefined) {
+      const enemyPlayerField = this.getFields(enemyPlayerId);
+      if (enemyPlayerField !== undefined) {
+        for (let y = 0; y < 10; y++) {
+          for (let x = 0; x < 10; x++) {
+            const cellStatus = enemyPlayerField.field[y][x];
+            if (
+              cellStatus === CellStatus.Small ||
+              cellStatus === CellStatus.Medium ||
+              cellStatus === CellStatus.Large ||
+              cellStatus === CellStatus.Huge
+            ) {
+              return false;
+            }
+          }
+        }
+        const currentPlayer = this._room.players.find(
+          (player) => player.index === currentPlayerId,
+        );
+        currentPlayer?.addWins();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public finishGameIfDisconnected(playerId: number): boolean {
+    const player = this._room.players.find(
+      (player) => player.index === playerId,
+    );
+    if (player) {
+      player?.addWins();
+      return true;
+    } else {
+      return false;
+    }
+  }
+  private getEmptyOrShipCells(field: Field): { x: number; y: number }[] {
+    const emptyOrShipCells: { x: number; y: number }[] = [];
+    for (let x = 0; x < 10; x++) {
+      for (let y = 0; y < 10; y++) {
+        const cellStatus = field.field[y][x];
+        if (
+          cellStatus === CellStatus.Empty ||
+          cellStatus === CellStatus.Small ||
+          cellStatus === CellStatus.Medium ||
+          cellStatus === CellStatus.Large ||
+          cellStatus === CellStatus.Huge
+        ) {
+          emptyOrShipCells.push({ x, y });
+        }
+      }
+    }
+    return emptyOrShipCells;
+  }
+
+  private getRandomCell(
+    cells: { x: number; y: number }[],
+  ): { x: number; y: number } | undefined {
+    if (cells.length === 0) {
+      return undefined;
+    }
+    const randomIndex = Math.floor(Math.random() * cells.length);
+    return cells[randomIndex];
+  }
+
+  private createAttackResponseData(
+    x: number,
+    y: number,
+    currentPlayer: number,
+    status: AttackStatus,
+  ): AttackResponseData {
+    return {
+      position: {
+        x,
+        y,
+      },
+      currentPlayer,
+      status,
+    };
+  }
+}
